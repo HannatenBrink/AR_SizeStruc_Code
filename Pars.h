@@ -37,7 +37,7 @@ extern std::vector<double> Parameter;
 #define u            Parameter[24]
 #define eta          Parameter[25]
 
-#define epsilonpar      Parameter[26]
+#define epsilonpar   Parameter[26]
 #define mu_b         Parameter[27]
 #define Xi           Parameter[28]
 #define size_birth   Parameter[29]

@@ -5,7 +5,6 @@
 //#define TIMECHECK //In case I want to get an idea about how long calculations take
 
 
-
 /*---------------------START OF MAIN-----------------------------------------*/
 int main(int argc, char* argv[]) {
 
@@ -19,9 +18,7 @@ int main(int argc, char* argv[]) {
   const string Filename = argv[1];
   cout << "Start of run: " << Filename << std::endl;
 
-
 /*--------------------------------Create random number generators-----------------------------------------------------------------------*/
-
   auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   if(argc == 3) {
     seed = atof(argv[2]);
@@ -86,17 +83,16 @@ int main(int argc, char* argv[]) {
 
   LogFile << endl << "________________________________________" << '\n' <<"Parameters of this run" << endl;
 
-std::vector<std::string> Parameter_names {"Rho" , "RJmax" , "RAmax" , "ThetaB" ,
-"Theta1" , "Theta2" , "Theta3" , "Theta4" ,
-"Theta5" , "Theta6" , "TauB" , "Tau1",
-"Tau2" , "Tau3" , "Tau4" , "Tau5" , "Tau6" ,
-"Amax" , "qpow" , "h" , "npow" , "alphapar" , "kmet" , "pmain" , "u" , "eta" , "epsilon" ,
-"mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "N_eco" , "N_neutral" , "N_mating" ,
-"mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral"};
+  std::vector<std::string> Parameter_names {"Rho" , "RJmax" , "RAmax" , "ThetaB" ,
+  "Theta1" , "Theta2" , "Theta3" , "Theta4" ,"Theta5" , "Theta6" , "TauB" ,
+  "Tau1", "Tau2" , "Tau3" , "Tau4" , "Tau5" , "Tau6" ,
+  "Amax" , "qpow" , "h" , "npow" , "alphapar" , "kmet" , "pmain" , "u" , "eta" , "epsilon" ,
+  "mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "N_eco" , "N_neutral" , "N_mating" ,
+  "mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral"};
 
   int f = 0;
   while(getline(input, line))
-  {
+    {
     curLine++;
     vector<string> lines;
     if (Start_read == 0){
@@ -118,27 +114,31 @@ std::vector<std::string> Parameter_names {"Rho" , "RJmax" , "RAmax" , "ThetaB" ,
         f += 1;
       }
     }
+
   LogFile << endl << endl;
   LogFile << "Simulation will run for " << Max_time << " years" << endl;
   LogFile << "Stepsize in the run is " << delta_t << endl;
+  LogFile << "Writing full pop file every " << Pop_TraitOutput << " days" << endl;
+  LogFile << "Writing mating file every " << MateFile << " days" << endl;
   ss.str("");
   input.close();
   if (clonal) {
-    LogFile << "Reproduction is clonal" << endl;
-  } else {
+    LogFile << "Reproduction is clonal" << endl;} else {
     LogFile << "Reproduction is sexual" << endl;
+    if(N_mating==0) {
+      LogFile << "Error: Sexual reproduction is only possible in case N_mating > 0. Exit run..." << endl;
+      cout << "Error: Sexual reproduction is only possible in case N_mating > 0. Exit run..." << endl;
+      exit(1);
+    }
   }
   LogFile << endl << "________________________________________" << endl << endl;
-/*--------------------------------Create iterators-----------------------------------------------------------------------*/
-  vector<Individual>::iterator it_m;  //Iterator over males
-  vector<Individual>::iterator it_f;  //Iterator over females
 
-  /*--------------------------------Define variables-------------------------------------------*/
+ /*--------------------------------Define variables-------------------------------------------*/
    MutNorm.param(std::normal_distribution<double>(0,mut_std).param());
    unif.param(std::uniform_real_distribution<double>(0.0, 1.0).param());
-   double fac;
+   Surv_age.param(exponential_distribution<double>((mu_b)).param());
+
    double Tot = 0;
-   double RandomVal;
    int mate;
    double Starttime_init = 0;
    vector<double> Feeding;    //Feeding by consumers
@@ -156,7 +156,7 @@ std::vector<std::string> Parameter_names {"Rho" , "RJmax" , "RAmax" , "ThetaB" ,
    double newtime = Max_time / delta_t + delta_t;
 
 
-/*------------------------Initialize the environment with ISF file--------------------------------------*/
+/*------------------------Initialize the environment with ISF file-----------------------------*/
   LogFile << "Initializing the population..." << endl;
   #ifdef TIMECHECK
   auto start = std::chrono::high_resolution_clock::now();
@@ -171,179 +171,156 @@ std::vector<std::string> Parameter_names {"Rho" , "RJmax" , "RAmax" , "ThetaB" ,
   } else {
     LogFile << "Initialization occurs via the isf file\n";
 
-
-  double RB_init, R1_init, R2_init, R3_init, R4_init, R5_init, R6_init, Volume_init;
-  double age_init, size_init, mating_trait_init, eco_trait_init, neutral_trait_init;
-  double dummy;
-  int sex_init, id, Mature, Matings;
-  int i = 0;
-  while (getline(InitPop, line)){
-    stringstream linestream(line);
-    if (i == 1) {
-      linestream >> Starttime_init >> Volume_init >> RB_init >> R1_init >> R2_init >> R3_init >> R4_init >> R5_init >> R6_init;
-      Resource RB(RB_init, RJmax, volume, ThetaB, TauB, "RB");
-      Resource R1(R1_init, RAmax, volume, Theta1, Tau1, "R1");
-      Resource R2(R2_init, RAmax, volume, Theta2, Tau2, "R2");
-      Resource R3(R3_init, RAmax, volume, Theta3, Tau3, "R3");
-      Resource R4(R4_init, RAmax, volume, Theta4, Tau4, "R4");
-      Resource R5(R5_init, RAmax, volume, Theta5, Tau5, "R5");
-      Resource R6(R6_init, RAmax, volume, Theta6, Tau6, "R6");
-      JFood.push_back(RB);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R1);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R2);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R3);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R4);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R5);
-      RmaxChange.push_back(0.0);
-      AFood.push_back(R6);
-      RmaxChange.push_back(0.0);
-    }
-    if (i > 3) {
-      vector <int> mating_f;
-      vector <double> eco_f;
-      vector <double> neutral_f;
-      vector <int> mating_m;
-      vector <double> eco_m;
-      vector <double> neutral_m;
-      if(N_neutral && N_mating){
-        linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
-            neutral_trait_init >> eco_trait_init >> Mature >> Matings;
-        //cout << "Age_init is " << age_init << endl;
-        for(int j = 0; j < N_mating; ++j) {
-                linestream >> dummy;
-                mating_f.push_back(dummy);
-            }
-        for(int j = 0; j < N_mating; ++j) {
-                linestream >> dummy;
-                mating_m.push_back(dummy);
-            }
-        for(int j = 0; j < N_neutral; ++j) {
-                linestream >> dummy;
-                neutral_f.push_back(dummy);
-            }
-        for(int j = 0; j < N_neutral; ++j) {
-                linestream >> dummy;
-                neutral_m.push_back(dummy);
-            }
-        for(int j = 0; j < N_eco; ++j) {
-                linestream >> dummy;
-                eco_f.push_back(dummy);
-            }
-        for(int j = 0; j < N_eco; ++j) {
-                linestream >> dummy;
-                eco_m.push_back(dummy);
-            }
-        if(sex_init) {
-          Females.push_back(Individual(age_init, size_init, sex_init, mating_f,mating_m, neutral_f, neutral_m,
-            eco_m, eco_f, JFood, AFood));
-        } else {
-          Males.push_back(Individual(age_init, size_init, sex_init, mating_f, mating_m, neutral_f, neutral_m,
-            eco_m, eco_f, JFood, AFood));
-        }
-       }
-      else if(N_mating){
-        linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
-            eco_trait_init >> Mature >> Matings;
-        //cout << "Age_init is " << age_init << endl;
-        for(int j = 0; j < N_mating; ++j) {
-                linestream >> dummy;
-                mating_f.push_back(dummy);
-            }
-        for(int j = 0; j < N_mating; ++j) {
-                linestream >> dummy;
-                mating_m.push_back(dummy);
-            }
-        for(int j = 0; j < N_eco; ++j) {
-                linestream >> dummy;
-                eco_f.push_back(dummy);
-            }
-        for(int j = 0; j < N_eco; ++j) {
-                linestream >> dummy;
-                eco_m.push_back(dummy);
-            }
-        if(sex_init) {
-          Females.push_back(Individual(age_init, size_init, sex_init, mating_f, mating_m,
-            eco_m, eco_f, JFood, AFood));
-        } else {
-          Males.push_back(Individual(age_init, size_init, sex_init, mating_f, mating_m,
-            eco_m, eco_f, JFood, AFood));
-        }
-       }
-      else {
-         linestream >> age_init >> size_init >> sex_init >> id >>
-             eco_trait_init >> Mature >> Matings;
-         for(int j = 0; j < N_eco; ++j) {
-                 linestream >> dummy;
-                 eco_f.push_back(dummy);
-             }
-         for(int j = 0; j < N_eco; ++j) {
-                 linestream >> dummy;
-                 eco_m.push_back(dummy);
-             }
-         if(sex_init) {
-             Females.push_back(Individual(age_init, size_init, sex_init,
-               eco_f, eco_m,  JFood, AFood));
-         } else {
-           Males.push_back(Individual(age_init, size_init, sex_init,
-             eco_f, eco_m, JFood, AFood));
+    double RB_init, R1_init, R2_init, R3_init, R4_init, R5_init, R6_init, Volume_init;
+    double age_init, size_init, mating_trait_init, eco_trait_init, neutral_trait_init, MaxAge_init;
+    double dummy;
+    int sex_init, id, Mature, Matings;
+    int i = 0;
+    while (getline(InitPop, line)){
+      stringstream linestream(line);
+      if (i == 1) {
+        linestream >> Starttime_init >> Volume_init >> RB_init >> R1_init >> R2_init >> R3_init >> R4_init >> R5_init >> R6_init;
+        Resource RB(RB_init, RJmax, volume, ThetaB, TauB, "RB");
+        Resource R1(R1_init, RAmax, volume, Theta1, Tau1, "R1");
+        Resource R2(R2_init, RAmax, volume, Theta2, Tau2, "R2");
+        Resource R3(R3_init, RAmax, volume, Theta3, Tau3, "R3");
+        Resource R4(R4_init, RAmax, volume, Theta4, Tau4, "R4");
+        Resource R5(R5_init, RAmax, volume, Theta5, Tau5, "R5");
+        Resource R6(R6_init, RAmax, volume, Theta6, Tau6, "R6");
+        AllFood.push_back(RB);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R1);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R2);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R3);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R4);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R5);
+        RmaxChange.push_back(0.0);
+        AllFood.push_back(R6);
+        RmaxChange.push_back(0.0);
+      }
+      if (i > 3) {
+        vector <int> mating_f;
+        vector <double> eco_f;
+        vector <double> neutral_f;
+        vector <int> mating_m;
+        vector <double> eco_m;
+        vector <double> neutral_m;
+        if(N_neutral && N_mating){
+          linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
+              neutral_trait_init >> eco_trait_init >> Mature >> Matings >> MaxAge_init;
+          //cout << "Age_init is " << age_init << endl;
+          for(int j = 0; j < N_mating; ++j) {
+                  linestream >> dummy;
+                  mating_f.push_back(dummy);
+              }
+          for(int j = 0; j < N_mating; ++j) {
+                  linestream >> dummy;
+                  mating_m.push_back(dummy);
+              }
+          for(int j = 0; j < N_neutral; ++j) {
+                  linestream >> dummy;
+                  neutral_f.push_back(dummy);
+              }
+          for(int j = 0; j < N_neutral; ++j) {
+                  linestream >> dummy;
+                  neutral_m.push_back(dummy);
+              }
+          for(int j = 0; j < N_eco; ++j) {
+                  linestream >> dummy;
+                  eco_f.push_back(dummy);
+              }
+          for(int j = 0; j < N_eco; ++j) {
+                  linestream >> dummy;
+                  eco_m.push_back(dummy);
+              }
+          if(sex_init) {
+            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
+              eco_m, eco_f, AllFood));
+              Femalesvec.push_back(move(IndivPtr));
+          } else {
+            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
+              eco_m, eco_f, AllFood));
+            Malesvec.push_back(move(IndivPtr));
+          }
          }
-        }
+        else if(N_mating){
+          linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
+              eco_trait_init >> Mature >> Matings >> MaxAge_init;
+          //cout << "Age_init is " << age_init << endl;
+          for(int j = 0; j < N_mating; ++j) {
+                  linestream >> dummy;
+                  mating_f.push_back(dummy);
+              }
+          for(int j = 0; j < N_mating; ++j) {
+                  linestream >> dummy;
+                  mating_m.push_back(dummy);
+              }
+          for(int j = 0; j < N_eco; ++j) {
+                  linestream >> dummy;
+                  eco_f.push_back(dummy);
+              }
+          for(int j = 0; j < N_eco; ++j) {
+                  linestream >> dummy;
+                  eco_m.push_back(dummy);
+              }
+          unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m,
+                eco_m, eco_f,  AllFood));
+          if(sex_init) {
+              Femalesvec.push_back(move(IndivPtr));
+          } else {
+              Malesvec.push_back(move(IndivPtr));
+          }
+         }
+        else {
+           linestream >> age_init >> size_init >> sex_init >> id >>
+               eco_trait_init >> Mature >> Matings >> MaxAge_init;
+           for(int j = 0; j < N_eco; ++j) {
+                   linestream >> dummy;
+                   eco_f.push_back(dummy);
+               }
+           for(int j = 0; j < N_eco; ++j) {
+                   linestream >> dummy;
+                   eco_m.push_back(dummy);
+               }
+               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init,Mature, eco_f, eco_m,   AllFood));
+           if(sex_init) {
+               Femalesvec.push_back(move(IndivPtr));
+           } else {
+              Malesvec.push_back(move(IndivPtr));
+           }
+          }
+      }
+      i += 1;
     }
-    i += 1;
   }
 
-}
   #ifdef TIMECHECK
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
   LogFile << "Initialization of the population takes " << duration.count() << " microseconds" << endl;
   #endif
 
-
-  LogFile << "The initial population size is " << Females.size() + Males.size() << endl;
+  LogFile << "The initial population size is " << Femalesvec.size() + Malesvec.size() << endl;
   LogFile << "...End of initializing the population" << endl;
   LogFile << endl << "________________________________________" << endl << endl;
 
-/*-------------------Print the init-------------------------*/
-/*print_resourceInfo_name(cout);
-for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-  print_resourceInfo(cout, *it_r);
-  Endfile << "\t";
-}
-for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
-  print_resourceInfo(cout, *it_r);
-  Endfile << "\t";
-}
-print_individualnames(cout);
-cout << endl;
-for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
-  print_individual(cout, *it_f);
-  cout << endl;
-}
-for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
-  print_individual(cout, *it_m);
-  cout << endl;
-}*/
 
+/*-----------------------------------Give names to the files-----------------------------------*/
 
-/*-----------------------------------Give names to the files---------------------------------------------------------*/
-
-  LogFile << "...Add names of variables to the files, and initialize variables" << endl;
+  LogFile << "Add names of variables to the files, and initialize variables..." << endl;
 
   Timefile << "Time" << '\t' << "Females" << '\t' << "FemaleMass" << '\t' <<
-   "Males" << '\t' << "MaleMass" << '\t' << "Adults" <<'\t';
-  for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-    print_resourceName(Timefile, *it_r);
-    Timefile << "\t";
-}
-  for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+   "Males" << '\t' << "MaleMass" << '\t' << "Adults" << '\t';
+  for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Timefile, *it_r);
     Timefile << "\t";}
+  #ifdef TIMECHECK
+  Timefile << "FeedingDur" << '\t' <<  "Remove_Death" << '\t' << "ReproductionDur";
+  #endif
   Timefile << endl;
 
   FullTraitfile << "Time" << "\t";
@@ -357,7 +334,6 @@ for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
   Matefile <<"Time" <<"\t" << "f_age" << "\t" << "f_size" << "\t" << "f_eco" << "\t" << "f_neu" << "\t" << "f_mating" <<"\t" << "m_age" << "\t" << "m_size" << "\t" <<
     "m_eco" << "\t" << "m_neu" << "\t" << "m_mating" << endl;
 
-
 /*------------------------------Set variables to raise exceptions------------------------------------*/
   struct sigaction sigIntHandler;
   sigIntHandler.sa_handler = sig_to_exception;
@@ -366,6 +342,7 @@ for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
   sigaction(SIGINT, &sigIntHandler, NULL);
 LogFile << "...Finished with adding names of variables to the files, and initializing variables" << endl;
 LogFile << "___________________________________________" << endl;
+
 /*------------------------Start of the loop over time-----------------------------------------------*/
  LogFile << "...Start with the simulation" << endl;
 
@@ -378,21 +355,19 @@ LogFile << "___________________________________________" << endl;
       LogFile << "\n \n \nTime is " << Time * delta_t << endl;
       #endif
 
-//Write phenotypic traits only to traitfile//
-    if ((Pop_TraitOutput> 0) &&
-      ((round(fmod(T_POP, (Pop_TraitOutput / delta_t))) == 0) ||
-      ((round(fmod(T_POP, (Pop_TraitOutput / delta_t)) - (Pop_TraitOutput / delta_t))  == 0)))) {
+      //Write phenotypic traits only to traitfile//
+      if ((Pop_TraitOutput> 0) && ((round(fmod(T_POP, (Pop_TraitOutput / delta_t))) == 0) || ((round(fmod(T_POP,   (Pop_TraitOutput / delta_t)) - (Pop_TraitOutput / delta_t))  == 0)))) {
       LogFile << "Writing phenotypes to traitfile at time " << Time * delta_t << endl << endl;
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();
       #endif
       T_POP = 0;
-      for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+      for (auto&& it_f : Femalesvec){
         Traitfile << Time * delta_t << "\t";
         print_traitsindividual(Traitfile, *it_f);
         Traitfile << endl;
       }
-      for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+      for (auto&& it_m : Malesvec){
         Traitfile << Time * delta_t << "\t";
         print_traitsindividual(Traitfile, *it_m);
         Traitfile << endl;
@@ -405,20 +380,18 @@ LogFile << "___________________________________________" << endl;
     }
 
       //Write FULL POPstate output to file//
-      if ((Pop_Output > 0) &&
-        ((round(fmod(T_POP_FULL, (Pop_Output / delta_t))) == 0)||
-        (round(fmod(T_POP_FULL, (Pop_Output / delta_t)) - (Pop_Output / delta_t))  == 0))){
-        LogFile << "Writing full output (phenotype & genotype) to file at time" << Time * delta_t << endl << endl;
+      if ((Pop_Output > 0) && ((round(fmod(T_POP_FULL, (Pop_Output / delta_t))) == 0)|| (round(fmod(T_POP_FULL, (Pop_Output / delta_t)) - (Pop_Output / delta_t))  == 0))){
+        LogFile << "Writing full output (phenotype & genotype) to file at time " << Time * delta_t << endl << endl;
         #ifdef TIMECHECK
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_POP_FULL = 0;
-        for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+        for (auto&& it_f : Femalesvec){
           FullTraitfile << Time * delta_t << "\t";
           print_individual(FullTraitfile, *it_f);
           FullTraitfile << endl;
         }
-        for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+        for (auto&& it_m : Malesvec){
           FullTraitfile << Time * delta_t << "\t";
           print_individual(FullTraitfile, *it_m);
           FullTraitfile << endl;
@@ -431,25 +404,23 @@ LogFile << "___________________________________________" << endl;
       }
 
       //Write output to time file//
-      if ((Output_time > 0) &&
-         ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
-         (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))){
+      if ((Output_time > 0) && ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) || (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
         #ifdef TIMECHECK
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_Time = 0;
-        double Female_Density = Females.size();
-        double Male_Density = Males.size();
+        double Female_Density = Femalesvec.size();
+        double Male_Density = Malesvec.size();
         double Female_Mass = 0;
         double Male_Mass = 0;
         double Adults = 0;
-        for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+        for (auto&& it_f : Femalesvec){
           Female_Mass += it_f->size;
           if (it_f->Mature){
             Adults += 1;
           }
         }
-        for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+        for (auto&& it_m : Malesvec){
           Male_Mass += it_m -> size;
           if (it_m->Mature){
             Adults += 1;
@@ -458,15 +429,11 @@ LogFile << "___________________________________________" << endl;
 
         Timefile << Time * delta_t << '\t' << Female_Density << '\t'
         << Female_Mass << '\t'  << Male_Density << '\t' << Male_Mass << '\t' << Adults <<'\t' ;
-        for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-          print_resourceDensity(Timefile, *it_r);
-          Timefile << "\t";
-        }
-        for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+        for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
             print_resourceDensity(Timefile, *it_r);
             Timefile << "\t";
         }
-        Timefile << endl;
+        //Timefile << endl;
         #ifdef TIMECHECK
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -479,10 +446,7 @@ LogFile << "___________________________________________" << endl;
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
     #endif
-    for(i = 0, it_r = JFood.begin(); it_r != JFood.end(); ++it_r, ++i){
-      Feeding.push_back(0);
-    }
-    for(it_r = AFood.begin(); it_r != AFood.end(); ++it_r, ++i){
+    for(it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
       Feeding.push_back(0);
     }
     #ifdef TIMECHECK
@@ -499,48 +463,35 @@ LogFile << "___________________________________________" << endl;
     tot3 = 0;
     start = std::chrono::high_resolution_clock::now();
     #endif
-    //Feed and grow//
-    for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
-      it_f->R_Intake(JFood, AFood);
-      it_f->Grow();
-      for(i = 0, it_r = JFood.begin(); it_r != JFood.end(); ++it_r, ++i){
-        Feeding[i] += it_f->Intake[i];
-      }
-      for(it_r = AFood.begin(); it_r != AFood.end(); ++it_r, ++i){
-        Feeding[i] += it_f->Intake[i];
-      }
+    //Feed and grow and die//
+    for (auto&& it_f : Femalesvec){
+      it_f->R_Intake(AllFood, Feeding);
     }
-    for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
-      it_m->R_Intake(JFood, AFood);
-      it_m->Grow();
-      for(i = 0, it_r = JFood.begin(); it_r != JFood.end(); ++it_r, ++i){
-        Feeding[i] += it_m->Intake[i];
-      }
-      for(it_r = AFood.begin(); it_r != AFood.end(); ++it_r, ++i){
-        Feeding[i] += it_m->Intake[i];
-      }
+    for (auto&& it_m : Malesvec){
+      it_m->R_Intake(AllFood, Feeding);
     }
-
 
     #ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    LogFile << "Total feeding and growing takes " << duration.count() << " microseconds" << endl;
+    LogFile << "Total feeding takes " << duration.count() << " microseconds" << endl;
+    if ((Output_time > 0) &&
+       ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+       (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+    Timefile << duration.count() << '\t';}
     #endif
+
+
+
 
 /*------------------------Growth of Resources-------------------------------------------*/
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
     #endif
 
-
-    for(i = 0, it_r = JFood.begin(); it_r != JFood.end(); ++it_r, ++i) {
-      it_r->Growth(Feeding[i], RmaxChange[i]);
-    }
-    for(it_r = AFood.begin(); it_r != AFood.end(); ++it_r, ++i){
+    for(i = 0, it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r, ++i){
         it_r->Growth(Feeding[i], RmaxChange[i]);
     }
-
     Feeding.clear(); //empty the feeding vector
 
     #ifdef TIMECHECK
@@ -551,32 +502,37 @@ LogFile << "___________________________________________" << endl;
 
 /*------------------------Dying---------------------------------------------------------*/
 
-        #ifdef TIMECHECK
-        start = std::chrono::high_resolution_clock::now();
-        #endif
+    #ifdef TIMECHECK
+    start = std::chrono::high_resolution_clock::now();
+    #endif
 
-        for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
-          it_f->Die();
-        }
-        for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
-          it_m->Die();
-        }
-        #ifdef TIMECHECK
-        stop = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        LogFile << "Dying takes " << duration.count() << " microseconds" << endl;
-        #endif
 
-        #ifdef TIMECHECK
-        start = std::chrono::high_resolution_clock::now();
-        #endif
-        Females.erase(std::remove_if(Females.begin(), Females.end(), IsMarkedToDelete), Females.end());
-        Males.erase(std::remove_if(Males.begin(), Males.end(), IsMarkedToDelete), Males.end());
-        #ifdef TIMECHECK
-        stop = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        LogFile << "Removing death animals takes " << duration.count() << " microseconds" << endl;
-        #endif
+    #ifdef TIMECHECK
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    LogFile << "Dying takes " << duration.count() << " microseconds" << endl;
+    #endif
+
+    #ifdef TIMECHECK
+    start = std::chrono::high_resolution_clock::now();
+    #endif
+
+    Femalesvec.erase(std::remove_if(Femalesvec.begin(), Femalesvec.end(),
+    [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Femalesvec.end());
+
+    Malesvec.erase(std::remove_if(Malesvec.begin(), Malesvec.end(),
+    [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Malesvec.end());
+
+
+    #ifdef TIMECHECK
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    LogFile << "Removing death animals takes " << duration.count() << " microseconds" << endl;
+    if ((Output_time > 0) &&
+       ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+       (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+    Timefile << duration.count() << '\t';}
+    #endif
 
 /*------------------------Mating-------------------------------*/
     if(!clonal){
@@ -588,77 +544,96 @@ LogFile << "___________________________________________" << endl;
       auto Tot2 = dur2.count();
       Tot2 = 0;
       #endif
-    for (it_f = Females.begin(); it_f != Females.end(); ++it_f) {
+    for (auto&& it_f : Femalesvec) {
       if (it_f->Fecund) {
       vector<double> cumsum;
       Tot = 0;
-      fac = -0.5 * pow((pow(it_f->mating_trait, 2)/s_ass),2); //strength of assortative mating
+
       #ifdef TIMECHECK
       start2 = std::chrono::high_resolution_clock::now();
       #endif
-      for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
-        it_m->MateProb(*it_f, cumsum, Tot, fac);
-      } //calculate probabilities
+      for (auto&& it_m : Malesvec){
+        it_m->MateProb(*it_f, cumsum, Tot); //calculate probabilities
+      }
       #ifdef TIMECHECK
       stop2 = std::chrono::high_resolution_clock::now();
       dur2 = std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2);
       Tot2 += dur2.count();
       #endif
       RandomVal = unif(mt_rand) * Tot;
-      mate = weighted_random_known_sums_floats(cumsum , RandomVal, cumsum.size()); //roulette wheel selection with binary search
-      it_m = next(Males.begin(), mate);
-          it_f->Matings += 1;
-          it_m->Matings += 1;
+      mate = weighted_random_known_sums_floats(cumsum ,RandomVal, cumsum.size()); //roulette wheel selection with binary search
+      auto it_m = next(Malesvec.begin(), mate);
+      it_f->Matings += 1;
+      (*it_m)->Matings += 1;
       //Write mate choice to matefile
-      if ((MateFile> 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0) ||
-    (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
-      Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
+      if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
+          Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
           it_f->ecological_trait << "\t"
           << it_f->neutral_trait << "\t" <<
           it_f->mating_trait << "\t" <<
-          it_m->age << "\t" << it_m->size << "\t" <<
-          it_m->ecological_trait << "\t" <<
-          it_m->neutral_trait << "\t" <<
-          it_m->mating_trait << endl;
-          T_Mate = 0;
+          (*it_m)->age << "\t" << (*it_m)->size << "\t" <<
+          (*it_m)->ecological_trait << "\t" <<
+          (*it_m)->neutral_trait << "\t" <<
+          (*it_m)->mating_trait << endl;
       }
-      it_f->Mating(*it_m);
-    }
-    }
+      it_f->SexualRepro(**it_m);
+    }}
+    if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)||(round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
+        T_Mate = 0;
+        LogFile << "Writing mating combinations to matefile at time " << Time * delta_t << endl << endl;
+      }
+
     #ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     LogFile << "Sexual reproduction takes " << duration.count() << " microseconds" << endl;
     LogFile << "Of which " << Tot2 << " microseconds is calculating mating probabilities" << endl;
+    if ((Output_time > 0) &&
+       ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+       (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+    Timefile << duration.count();}
     #endif
-    } else {
+    }
+    else {
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();
       #endif
-      for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+      for (auto&& it_f : Femalesvec){
         if (it_f->Fecund) {
-          it_f->ClonalMating();
+          it_f->ClonalRepro();
           it_f->Matings += 1;}
       }
-      for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+      for (auto&& it_m : Malesvec){
         if (it_m->Fecund) {
-          it_m->ClonalMating();
+          it_m->ClonalRepro();
           it_m->Matings +=1;}
       }
       #ifdef TIMECHECK
       stop = std::chrono::high_resolution_clock::now();
       duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
       LogFile << "Clonal reproduction takes " << duration.count() << " microseconds" << endl;
+      if ((Output_time > 0) &&
+         ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+         (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+      Timefile << duration.count();}
       #endif
     }
 
+Timefile << endl;
 
 /*------------------------Add juveniles to the pop------------------------------------*/
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
     #endif
-    Females.insert(std::end(Females), std::begin(JuvFemales), std::end(JuvFemales));
-    Males.insert(std::end(Males), std::begin(JuvMales), std::end(JuvMales));
+
+    Femalesvec.insert(Femalesvec.end(),
+    std::make_move_iterator(JuvFemalesvec.begin()),
+    std::make_move_iterator(JuvFemalesvec.end()));
+
+     Malesvec.insert(Malesvec.end(),
+     std::make_move_iterator(JuvMalesvec.begin()),
+     std::make_move_iterator(JuvMalesvec.end()));
+
     #ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -667,13 +642,13 @@ LogFile << "___________________________________________" << endl;
 
 
     //Clear the newborn vector
-    JuvFemales.clear();
-    JuvMales.clear();
+    JuvFemalesvec.clear();
+    JuvMalesvec.clear();
 
 
 /*------------------------Create output-------------------------------------------------*/
     //Exit when population is extinct
-    if(Females.size()<=0 && Males.size()<=0){
+    if(Femalesvec.size()<=0 && Malesvec.size()<=0){
       std::cerr<<"The consumer population is extinct at time " << Time * delta_t << "\n";
       exit(1);
     }
@@ -685,29 +660,22 @@ LogFile << "___________________________________________" << endl;
     T_Mate += 1;
 
 }
-LogFile << "... Finished with the simulation" << endl << endl;
+  LogFile << "... Finished with the simulation" << endl << endl;
+
 /*------------------------End of the timeloop-------------------------------------------*/
 
 /*------------------------Create last output--------------------------------------------*/
 
 
   Endfile << "Time" << "\t" << "Volume" << "\t";
-  for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-    print_resourceName(Endfile, *it_r);
-    Endfile << "\t";
-  }
-  for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+  for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Endfile, *it_r);
     Endfile << "\t";
   }
   Endfile << endl;
 
   Endfile << Time * delta_t << "\t" << volume << "\t";
-  for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-    print_resourceDensity(Endfile, *it_r);
-    Endfile << "\t";
-  }
-  for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+  for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceDensity(Endfile, *it_r);
     Endfile << "\t";
   }
@@ -715,11 +683,11 @@ LogFile << "... Finished with the simulation" << endl << endl;
 
   print_individualnames(Endfile);
   Endfile << endl;
-  for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+  for (auto&& it_f : Femalesvec){
     print_individual(Endfile, *it_f);
     Endfile << endl;
   }
-  for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+  for (auto&& it_m : Malesvec){
     print_individual(Endfile, *it_m);
     Endfile << endl;
   }
@@ -740,22 +708,16 @@ catch(InterruptException& e) //Try to write to output in case of interruption
         LogFile  << "Caught signal " << e.S << endl;
         LogFile << "Writing current output to the .esf file" << endl;
         Endfile << "Time" << "\t" << "Volume" << "\t";
-        for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-          print_resourceName(Endfile, *it_r);
-          Endfile << "\t";
-        }
-        for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+
+        for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
           print_resourceName(Endfile, *it_r);
           Endfile << "\t";
         }
         Endfile << endl;
 
         Endfile << Time*delta_t << "\t" << volume << "\t";
-        for (it_r = JFood.begin(); it_r != JFood.end(); ++it_r){
-          print_resourceDensity(Endfile, *it_r);
-          Endfile << "\t";
-        }
-        for (it_r = AFood.begin(); it_r != AFood.end(); ++it_r){
+
+        for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
           print_resourceDensity(Endfile, *it_r);
           Endfile << "\t";
         }
@@ -763,14 +725,15 @@ catch(InterruptException& e) //Try to write to output in case of interruption
 
         print_individualnames(Endfile);
         Endfile << "\n" << endl;
-        for (it_f = Females.begin(); it_f != Females.end(); ++it_f){
+        for (auto&& it_f : Femalesvec){
           print_individual(Endfile, *it_f);
           Endfile << endl;
         }
-        for (it_m = Males.begin(); it_m != Males.end(); ++it_m){
+        for (auto&& it_m : Malesvec){
           print_individual(Endfile, *it_m);
           Endfile << endl;
         }
+
         LogFile  << "Simulation ended at time " << Time * delta_t << endl;
         cout << "Simulation ended at time " << Time * delta_t << endl;
 

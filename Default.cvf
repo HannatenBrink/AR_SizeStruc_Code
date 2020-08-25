@@ -1,6 +1,6 @@
 "Maximum integration time"	10000
 "Write to time file"		1
-"Write full pop"		10000
+"Write full pop"		1000
 "Write trait pop"		0
 "Write matefile"		0
 "[ 0]	rho		Resource turnover rate"			0.1
@@ -42,9 +42,9 @@
 "[36]	mut_std		Stdev in mutation distr"		0.01
 "[37]	mut_rate	Mutation rate"				0
 "[38]	mut_rate_di	Mutation rate of dialic loci"	        0
-"[39]	delta_t		Stepsize in IBM"			0.1
-"[40]	vol		Volume of the system (m3)"		100000
-"[41]	clonal		Clonal or not"				1
+"[39]	delta_t		Stepsize in IBM"			1
+"[40]	vol		Volume of the system (m3)"		1000000
+"[41]	clonal		Clonal or not"				0
 "[42]	ini_eco		Initial eco trait"		        0  
 "[43]	ini_mate	Initial mate trait"		        0
 "[44]	ini_neut	Initial neutral trait"		        0
