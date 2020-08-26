@@ -320,7 +320,7 @@ for(i = 0; i < N_eco; ++i){
 }
 
 std::cout << "Add " << N_ini * 4 << " individuals to the init pop" << std::endl;
-for(i = 0; i < N_ini; ++i){
+for(int k = 0; k < N_ini; ++k){
   unique_ptr<Individual> IndivPtr1(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini, 1,  AllFood));
 
