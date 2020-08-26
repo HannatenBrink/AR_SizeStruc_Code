@@ -36,7 +36,7 @@ double psi;
 double Total;
 double IntakeTot;
 double Value;
-int sex;
+int sex_off;
 int Offspring;
 double multi;
 double dif;
@@ -109,18 +109,15 @@ inline std::ostream& print_individual(std::ostream& os, const Individual& s){
   if(N_neutral && N_mating){
   os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
   << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" <<
-       s.Matings << "\t" << s.MaxAge << "\t";
+      s.Mature << "\t" << s.Matings << "\t" << s.MaxAge << "\t";
   }
   else if(N_mating){
      os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
       <<  s.mating_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" <<
-         s.Matings << "\t" << s.MaxAge << "\t";
+      s.Mature << "\t" << s.Matings << "\t" << s.MaxAge << "\t";
 } else {
   os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
-  <<   s.ecological_trait << "\t" <<
-  s.Mature << "\t" <<
+  <<   s.ecological_trait << "\t" << s.Mature << "\t" <<
      s.Matings << "\t" << s.MaxAge << "\t";
   }
   for(i = 0; i < N_mating; ++i){

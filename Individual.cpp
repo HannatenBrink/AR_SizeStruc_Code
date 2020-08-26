@@ -143,14 +143,14 @@ void Individual::SexualRepro(Individual& male) {
 
 
     //determine the sex of the newborn//
-    if(unif(mt_rand) > 0.5) {sex = 1;} else {sex = 0;}
+    if(unif(mt_rand) > 0.5) {sex_off = 1;} else {sex_off = 0;}
 
     //Create a newborn, mutate the alleles, and add to the juvenile population//
     std::unique_ptr<Individual> IndivPtr(new Individual(mating_alleles_mother, mating_alleles_father,
       neutral_alleles_mother, neutral_alleles_father,
       eco_alleles_mother, eco_alleles_father,
-      sex,  AllFood, 1));
-    if(sex){
+      sex_off,  AllFood, 1));
+    if(sex_off == 1){
       JuvFemalesvec.push_back(move(IndivPtr));
     } else {
       JuvMalesvec.push_back(move(IndivPtr));
@@ -166,13 +166,13 @@ void Individual::ClonalRepro() {
   //for loop over number of offspring//
   for(int k = 0; k < Offspring; ++k){
     //determine the sex of the newborn//
-    if(unif(mt_rand) > 0.5) {sex = 1;} else {sex = 0;}
+    if(unif(mt_rand) > 0.5) {sex_off = 1;} else {sex_off = 0;}
     //create newborn, mutate alleles, and add to the population
       std::unique_ptr<Individual> IndivPtr(new Individual(this->mating_trait_alleles_f, this->mating_trait_alleles_m,
         this->neutral_trait_alleles_f, this->neutral_trait_alleles_m,
         this->ecological_trait_alleles_f , this->ecological_trait_alleles_m,
-        sex,  AllFood, 1));
-    if(sex){
+        sex_off,  AllFood, 1));
+    if(sex_off == 1){
       JuvFemalesvec.push_back(move(IndivPtr));
     } else {
       JuvMalesvec.push_back(move(IndivPtr));

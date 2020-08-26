@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
                   linestream >> dummy;
                   eco_m.push_back(dummy);
               }
-          if(sex_init) {
+          if(sex_init == 1) {
             unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
               eco_m, eco_f, AllFood));
               Femalesvec.push_back(move(IndivPtr));
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
               }
           unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m,
                 eco_m, eco_f,  AllFood));
-          if(sex_init) {
+          if(sex_init == 1) {
               Femalesvec.push_back(move(IndivPtr));
           } else {
               Malesvec.push_back(move(IndivPtr));
@@ -287,8 +287,8 @@ int main(int argc, char* argv[]) {
                    linestream >> dummy;
                    eco_m.push_back(dummy);
                }
-               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init,Mature, eco_f, eco_m,   AllFood));
-           if(sex_init) {
+               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, eco_f, eco_m,   AllFood));
+           if(sex_init == 1) {
                Femalesvec.push_back(move(IndivPtr));
            } else {
               Malesvec.push_back(move(IndivPtr));
@@ -347,6 +347,7 @@ LogFile << "___________________________________________" << endl;
 /*------------------------Start of the loop over time-----------------------------------------------*/
  LogFile << "...Start with the simulation" << endl;
 
+
   try
   {
     Time = Starttime_init;
@@ -386,7 +387,7 @@ LogFile << "___________________________________________" << endl;
         #ifdef TIMECHECK
         start = std::chrono::high_resolution_clock::now();
         #endif
-        T_POP_FULL = 0;
+        T_POP_FULL = 0;    
         for (auto&& it_f : Femalesvec){
           FullTraitfile << Time * delta_t << "\t";
           print_individual(FullTraitfile, *it_f);
@@ -624,6 +625,7 @@ LogFile << "___________________________________________" << endl;
        (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
         Timefile << endl;}
 
+
 /*------------------------Add juveniles to the pop------------------------------------*/
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
@@ -686,10 +688,12 @@ LogFile << "___________________________________________" << endl;
 
   print_individualnames(Endfile);
   Endfile << endl;
+
   for (auto&& it_f : Femalesvec){
     print_individual(Endfile, *it_f);
     Endfile << endl;
   }
+
   for (auto&& it_m : Malesvec){
     print_individual(Endfile, *it_m);
     Endfile << endl;

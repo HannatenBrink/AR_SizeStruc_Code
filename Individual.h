@@ -28,7 +28,7 @@ extern double psi; //Allocation to maturation
 extern double Total; //temp var to calculate food intake
 extern double IntakeTot; //Variable that holds total food intake of indiviudal
 extern double Value; //temp variable to calculate food intake
-extern int sex; //temp variable to hold sex
+extern int sex_off; //temp variable to hold sex
 extern int Offspring; //Number of offspring
 extern double dif; //Difference in trait between two parents
 
