@@ -2,6 +2,7 @@
 #define RESOURCE_H
 #include <iostream>
 #include "Pars.h"
+#include <memory>
 
 class Resource {
   friend std::ostream& print_resource(std::ostream&, const Resource&);

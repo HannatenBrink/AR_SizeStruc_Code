@@ -1,0 +1,1 @@
+Time	f_age	f_size	f_eco	f_neu	f_mating	m_age	m_size	m_eco	m_neu	m_mating

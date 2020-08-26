@@ -6,6 +6,8 @@
 #include <math.h>
 #include "Pars.h"
 #include "Resource.h"
+#include <memory>
+#include <algorithm>
 
 extern int i;
 extern int j;
@@ -230,9 +232,11 @@ public:
       Fecund = false;
       Is_dead = false;
       Mature = false;
+      if(mut == 1){
       this->Mate_mut();
       this->Eco_mut();
       this->Neutral_mut();
+      }
       if (N_neutral) {
         neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
         neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}

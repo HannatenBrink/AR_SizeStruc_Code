@@ -20,7 +20,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
     Intake.push_back(Value);
   }}
 
-  multi = h * pow(this->size, npow) / (Total + h * pow(this->size, npow));
+  multi = hpar* pow(this->size, npow) / (Total + hpar* pow(this->size, npow));
   IntakeTot = multi * Total;
 
   std::transform(Intake.begin(), Intake.end(), Intake.begin(),

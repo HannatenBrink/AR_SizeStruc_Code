@@ -1,0 +1,33 @@
+The random seed for this run is: 101869429064981
+Reading the CVF file
+
+________________________________________
+Parameters of this run
+Rho: 	0.1	RJmax: 	0.06	RAmax: 	0.1	ThetaB: 	0	Theta1: 	1	Theta2: 	3.5	Theta3: 	6	Theta4: 	8.5	Theta5: 	11	Theta6: 	13.5	TauB: 	2000	Tau1: 	1	Tau2: 	1	Tau3: 	1	Tau4: 	1	Tau5: 	1	Tau6: 	1	Amax: 	21.9	qpow: 	0.8	h: 	0.233	npow: 	0.75	alphapar: 	0.6	kmet: 	0.0274	pmain: 	0.75	u: 	10	eta: 	0.25	epsilon: 	0.1	mu_b: 	0.01	Xi: 	0.1	M_B: 	0.05	M_Mat: 	100	M_Shift: 	30	s_ass: 	0.05	N_eco: 	1	N_neutral: 	0	N_mating: 	0	mut_std: 	0.01	Mut_rate: 	0	Mut_rate_dialic: 	0	delta_t: 	1	volume: 	1e+06	clonal: 	1	ini_eco: 	0	ini_mate: 	0	ini_neutral: 	0	
+
+Simulation will run for 100 years
+Stepsize in the run is 1
+Writing to timefile every 1 days
+Writing full pop file every 1000 days
+Writing mating file every 0 days
+Reproduction is clonal
+
+________________________________________
+
+Initializing the population...
+The ISF-file  does not exist. Initialization via the program. Start with 20 individuals
+The initial population size is 4
+...End of initializing the population
+
+________________________________________
+
+Add names of variables to the files, and initialize variables...
+...Finished with adding names of variables to the files, and initializing variables
+___________________________________________
+...Start with the simulation
+Writing full output (phenotype & genotype) to file at time 0
+
+... Finished with the simulation
+
+
+Simulation ended at time 101

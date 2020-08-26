@@ -118,7 +118,8 @@ int main(int argc, char* argv[]) {
   LogFile << endl << endl;
   LogFile << "Simulation will run for " << Max_time << " years" << endl;
   LogFile << "Stepsize in the run is " << delta_t << endl;
-  LogFile << "Writing full pop file every " << Pop_TraitOutput << " days" << endl;
+  LogFile << "Writing to timefile every " << Output_time << " days" << endl;
+  LogFile << "Writing full pop file every " << Pop_Output << " days" << endl;
   LogFile << "Writing mating file every " << MateFile << " days" << endl;
   ss.str("");
   input.close();
@@ -618,8 +619,10 @@ LogFile << "___________________________________________" << endl;
       Timefile << duration.count();}
       #endif
     }
-
-Timefile << endl;
+    if ((Output_time > 0) &&
+       ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+       (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+        Timefile << endl;}
 
 /*------------------------Add juveniles to the pop------------------------------------*/
     #ifdef TIMECHECK

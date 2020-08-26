@@ -1,7 +1,7 @@
 #ifndef PARS_H
 #define PARS_H
 #include <vector>
-
+#include <memory>
 
 extern std::vector<double> Setting;
 extern std::vector<double> Parameter;
@@ -29,7 +29,7 @@ extern std::vector<double> Parameter;
 
 #define Amax         Parameter[17]
 #define qpow         Parameter[18]
-#define h            Parameter[19]
+#define hpar         Parameter[19]
 #define npow         Parameter[20]
 #define alphapar     Parameter[21]
 #define kmet         Parameter[22]
