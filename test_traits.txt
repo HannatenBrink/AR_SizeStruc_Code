@@ -1,2 +1,0 @@
-Time	age	size	sex	SpeciesID	eco_trait 	Mature	Matings	MaxAge
-
