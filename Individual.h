@@ -47,7 +47,8 @@ public:
 
     //Old individuals no mut, all 3 genotypes (assortative mating based on neutral trait)//
     Individual(double age, double size, const int sex, double mxage, bool Mat,
-    std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+    //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+    std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     std::vector<Resource>& AllFood)
@@ -94,7 +95,8 @@ public:
 
     //Old individuals no mut, 2 genotypes (assortative mating based on eco trait)//
     Individual(double age, double size, const int sex, double mxage, bool Mat,
-      std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+      //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+      std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
       : size(size), age(age),  Mature(Mat), sex(sex),
@@ -172,7 +174,9 @@ public:
 
 
     //Newborn no mut//
-    Individual(std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+    Individual(
+      std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
+      //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       const int sex, std::vector<Resource>& AllFood)
@@ -218,7 +222,9 @@ public:
       }
 
   //Newborn with mut (it will mutate its traits first)//
-  Individual(std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+  Individual(
+    std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
+    //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     const int sex, std::vector<Resource>& AllFood, const int mut)
@@ -277,7 +283,7 @@ public:
 
 
   /*------------------Mutations---------------------------------------*/
-  void Mate_mut_diallic();
+//  void Mate_mut_diallic();
 
   void Mate_mut();
 
@@ -319,8 +325,10 @@ public:
   /*------------------Data members private---------------------------------------*/
 
   int sex;
-  std::vector<int> mating_trait_alleles_f;
-  std::vector<int> mating_trait_alleles_m;
+  //std::vector<int> mating_trait_alleles_f;
+  //std::vector<int> mating_trait_alleles_m;
+  std::vector<double> mating_trait_alleles_f;
+  std::vector<double> mating_trait_alleles_m;
   std::vector<double> neutral_trait_alleles_f;
   std::vector<double> neutral_trait_alleles_m;
   std::vector<double> ecological_trait_alleles_f;

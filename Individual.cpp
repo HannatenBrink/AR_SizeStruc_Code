@@ -105,8 +105,10 @@ void Individual::SexualRepro(Individual& male) {
   std::cout << std::endl << std::endl;*/
   //for loop over number of offspring//
   for(int k = 0; k < Offspring; ++k){
-    std::vector<int> mating_alleles_mother;
-    std::vector<int> mating_alleles_father;
+    //std::vector<int> mating_alleles_mother;
+    //std::vector<int> mating_alleles_father;
+    std::vector<double> mating_alleles_mother;
+    std::vector<double> mating_alleles_father;
     std::vector<double> neutral_alleles_mother;
     std::vector<double> neutral_alleles_father;
     std::vector<double> eco_alleles_mother;
@@ -194,7 +196,7 @@ void Individual::ClonalRepro() {
 }
 
 /*---------------------------------------Mutate---------------------------------------*/
-inline void Individual::Mate_mut_diallic(){
+/*inline void Individual::Mate_mut_diallic(){
   for(int_it = this->mating_trait_alleles_f.begin(); int_it != this->mating_trait_alleles_f.end(); ++int_it) {
     if(unif(mt_rand) < mut_rate_di) {
       *int_it *= -1;
@@ -205,10 +207,10 @@ inline void Individual::Mate_mut_diallic(){
       *int_it *= -1;
     }
   }
-}
+}*/
 
 inline void Individual::Mate_mut(){
-  for(int_it = this->mating_trait_alleles_f.begin(); int_it != this->mating_trait_alleles_f.end(); ++int_it) {
+  for(int_doub = this->mating_trait_alleles_f.begin(); int_doub != this->mating_trait_alleles_f.end(); ++int_doub) {
     if(unif(mt_rand) < mut_rate) {
       *int_doub += MutNorm(mt_rand);
       if(*int_doub > 1){
@@ -218,7 +220,7 @@ inline void Individual::Mate_mut(){
       }
     }
   }
-  for(int_it = this->mating_trait_alleles_m.begin(); int_it != this->mating_trait_alleles_m.end(); ++int_it) {
+  for(int_doub = this->mating_trait_alleles_m.begin(); int_doub != this->mating_trait_alleles_m.end(); ++int_doub) {
     if(unif(mt_rand) < mut_rate) {
     *int_doub += MutNorm(mt_rand);
     if(*int_doub > 1){

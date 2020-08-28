@@ -210,10 +210,12 @@ int main(int argc, char* argv[]) {
         RmaxChange.push_back(0.0);
       }
       if (i > 3) {
-        vector <int> mating_f;
+        //vector <int> mating_f;
+        vector <double> mating_f;
         vector <double> eco_f;
         vector <double> neutral_f;
-        vector <int> mating_m;
+        //vector <int> mating_m;
+        vector <double> mating_m;
         vector <double> eco_m;
         vector <double> neutral_m;
         if(N_neutral && N_mating){

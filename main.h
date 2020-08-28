@@ -328,8 +328,10 @@ void Init_Env() {
 
 
 /*------------------------Initialize the pop-------------*/
-vector<int> mate_traits_f_ini;
-vector<int> mate_traits_m_ini;
+//vector<int> mate_traits_f_ini;
+//vector<int> mate_traits_m_ini;
+vector<double> mate_traits_f_ini;
+vector<double> mate_traits_m_ini;
 vector<double> neutral_traits_f_ini;
 vector<double> neutral_traits_m_ini;
 vector<double> ecological_traits_f_ini;
