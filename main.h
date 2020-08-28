@@ -42,6 +42,54 @@ double multi;
 double dif;
 double RandomVal;
 
+double Female_Density = Femalesvec.size();
+double Male_Density = Malesvec.size();
+double Female_Mass = 0;
+double Male_Mass = 0;
+double Adults = 0;
+
+double Female_Density1 = 0;
+double Male_Density1 = 0;
+double Female_Mass1 = 0;
+double Male_Mass1 = 0;
+double Adults1 = 0;
+
+double Female_Density2 = 0;
+double Male_Density2 = 0;
+double Female_Mass2 = 0;
+double Male_Mass2 = 0;
+double Adults2 = 0;
+
+double Female_Density3 = 0;
+double Male_Density3 = 0;
+double Female_Mass3 = 0;
+double Male_Mass3 = 0;
+double Adults3 = 0;
+
+double Female_Density4 = 0;
+double Male_Density4 = 0;
+double Female_Mass4 = 0;
+double Male_Mass4 = 0;
+double Adults4 = 0;
+
+double Female_Density5 = 0;
+double Male_Density5 = 0;
+double Female_Mass5 = 0;
+double Male_Mass5 = 0;
+double Adults5 = 0;
+
+double Female_Density6 = 0;
+double Male_Density6 = 0;
+double Female_Mass6 = 0;
+double Male_Mass6 = 0;
+double Adults6 = 0;
+
+double Female_Density7 = 0;
+double Male_Density7 = 0;
+double Female_Mass7 = 0;
+double Male_Mass7 = 0;
+double Adults7 = 0;
+
 mt19937 mt_rand;
 uniform_real_distribution<double> unif;
 normal_distribution<double> MutNorm;

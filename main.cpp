@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
 
   LogFile << endl << endl;
-  LogFile << "Simulation will run for " << Max_time << " years" << endl;
+  LogFile << "Simulation will run for " << Max_time << " days" << endl;
   LogFile << "Stepsize in the run is " << delta_t << endl;
   LogFile << "Writing to timefile every " << Output_time << " days" << endl;
   LogFile << "Writing full pop file every " << Pop_Output << " days" << endl;
@@ -124,7 +124,13 @@ int main(int argc, char* argv[]) {
   ss.str("");
   input.close();
   if (clonal) {
-    LogFile << "Reproduction is clonal" << endl;} else {
+    LogFile << "Reproduction is clonal" << endl;
+    if(N_mating>0 || N_neutral > 0) {
+      LogFile << "Error: Mating genotypes should be set to zero in cvf file. Exit run..." << endl;
+      cout << "Error: Mating genotypes should be set to zero in cvf file. Exit run..." << endl;
+      exit(1);
+    }
+     } else {
     LogFile << "Reproduction is sexual" << endl;
     if(N_mating==0) {
       LogFile << "Error: Sexual reproduction is only possible in case N_mating > 0. Exit run..." << endl;
@@ -154,7 +160,7 @@ int main(int argc, char* argv[]) {
    SpeciesDiv.push_back(b3);
    SpeciesDiv.push_back(b2);
    SpeciesDiv.push_back(b1);
-   double newtime = Max_time / delta_t + delta_t;
+   double newtime = Max_time / delta_t;
 
 
 /*------------------------Initialize the environment with ISF file-----------------------------*/
@@ -315,7 +321,21 @@ int main(int argc, char* argv[]) {
   LogFile << "Add names of variables to the files, and initialize variables..." << endl;
 
   Timefile << "Time" << '\t' << "Females" << '\t' << "FemaleMass" << '\t' <<
-   "Males" << '\t' << "MaleMass" << '\t' << "Adults" << '\t';
+   "Males" << '\t' << "MaleMass" << '\t' << "Adults" << '\t'
+   << "Females1" << '\t' << "FemaleMass1" << '\t' <<
+    "Males1" << '\t' << "MaleMass1" << '\t' << "Adults1" << '\t'
+    << "Females2" << '\t' << "FemaleMass2" << '\t' <<
+     "Males2" << '\t' << "MaleMass2" << '\t' << "Adults2" << '\t'
+     << "Females3" << '\t' << "FemaleMass3" << '\t' <<
+      "Males3" << '\t' << "MaleMass3" << '\t' << "Adults3" << '\t'
+      << "Females4" << '\t' << "FemaleMass4" << '\t' <<
+       "Males4" << '\t' << "MaleMass4" << '\t' << "Adults4" << '\t'
+       << "Females5" << '\t' << "FemaleMass5" << '\t' <<
+        "Males5" << '\t' << "MaleMass5" << '\t' << "Adults5" << '\t'
+        << "Females6" << '\t' << "FemaleMass6" << '\t' <<
+         "Males6" << '\t' << "MaleMass6" << '\t' << "Adults6" << '\t'
+         << "Females7" << '\t' << "FemaleMass7" << '\t' <<
+          "Males7" << '\t' << "MaleMass7" << '\t' << "Adults7" << '\t';
   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Timefile, *it_r);
     Timefile << "\t";}
@@ -387,7 +407,7 @@ LogFile << "___________________________________________" << endl;
         #ifdef TIMECHECK
         start = std::chrono::high_resolution_clock::now();
         #endif
-        T_POP_FULL = 0;    
+        T_POP_FULL = 0;
         for (auto&& it_f : Femalesvec){
           FullTraitfile << Time * delta_t << "\t";
           print_individual(FullTraitfile, *it_f);
@@ -411,26 +431,193 @@ LogFile << "___________________________________________" << endl;
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_Time = 0;
-        double Female_Density = Femalesvec.size();
-        double Male_Density = Malesvec.size();
-        double Female_Mass = 0;
-        double Male_Mass = 0;
-        double Adults = 0;
+          Female_Density = Femalesvec.size();
+          Male_Density = Malesvec.size();
+          Female_Mass = 0;
+          Male_Mass = 0;
+          Adults = 0;
+
+          Female_Density1 = 0;
+          Male_Density1 = 0;
+          Female_Mass1 = 0;
+          Male_Mass1 = 0;
+          Adults1 = 0;
+
+          Female_Density2 = 0;
+          Male_Density2 = 0;
+          Female_Mass2 = 0;
+          Male_Mass2 = 0;
+          Adults2 = 0;
+
+          Female_Density3 = 0;
+          Male_Density3 = 0;
+          Female_Mass3 = 0;
+          Male_Mass3 = 0;
+          Adults3 = 0;
+
+          Female_Density4 = 0;
+          Male_Density4 = 0;
+          Female_Mass4 = 0;
+          Male_Mass4 = 0;
+          Adults4 = 0;
+
+          Female_Density5 = 0;
+          Male_Density5 = 0;
+          Female_Mass5 = 0;
+          Male_Mass5 = 0;
+          Adults5 = 0;
+
+          Female_Density6 = 0;
+          Male_Density6 = 0;
+          Female_Mass6 = 0;
+          Male_Mass6 = 0;
+          Adults6 = 0;
+
+          Female_Density7 = 0;
+          Male_Density7 = 0;
+          Female_Mass7 = 0;
+          Male_Mass7 = 0;
+          Adults7 = 0;
+
         for (auto&& it_f : Femalesvec){
           Female_Mass += it_f->size;
           if (it_f->Mature){
             Adults += 1;
           }
+          switch(it_f->SpeciesID) {
+            case 1:
+            Female_Mass1 += it_f->size;
+            Female_Density1 += 1;
+            if (it_f->Mature){
+              Adults1 += 1;
+            }
+            break;
+            case 2:
+            Female_Mass2 += it_f->size;
+            Female_Density2 += 1;
+            if (it_f->Mature){
+              Adults2 += 1;
+            }
+            break;
+            case 3:
+            Female_Mass3 += it_f->size;
+            Female_Density3 += 1;
+            if (it_f->Mature){
+              Adults3 += 1;
+            }
+            break;
+            case 4:
+            Female_Mass4 += it_f->size;
+            Female_Density4 += 1;
+            if (it_f->Mature){
+              Adults4 += 1;
+            }
+            break;
+            case 5:
+            Female_Mass5 += it_f->size;
+            Female_Density5 += 1;
+            if (it_f->Mature){
+              Adults5 += 1;
+            }
+            break;
+            case 6:
+            Female_Mass6 += it_f->size;
+            Female_Density6 += 1;
+            if (it_f->Mature){
+              Adults6 += 1;
+            }
+            break;
+            case 7:
+            Female_Mass7 += it_f->size;
+            Female_Density7 += 1;
+            if (it_f->Mature){
+              Adults7 += 1;
+            }
+            break;
+
+          }
         }
+
         for (auto&& it_m : Malesvec){
           Male_Mass += it_m -> size;
           if (it_m->Mature){
             Adults += 1;
           }
+
+          switch(it_m->SpeciesID) {
+            case 1:
+             Male_Mass1 += it_m->size;
+             Male_Density1 += 1;
+            if (it_m->Mature){
+              Adults1 += 1;
+            }
+            break;
+            case 2:
+             Male_Mass2 += it_m->size;
+             Male_Density2 += 1;
+            if (it_m->Mature){
+              Adults2 += 1;
+            }
+            break;
+            case 3:
+             Male_Mass3 += it_m->size;
+             Male_Density3 += 1;
+            if (it_m->Mature){
+              Adults3 += 1;
+            }
+            break;
+            case 4:
+             Male_Mass4 += it_m->size;
+             Male_Density4 += 1;
+            if (it_m->Mature){
+              Adults4 += 1;
+            }
+            break;
+            case 5:
+             Male_Mass5 += it_m->size;
+             Male_Density5 += 1;
+            if (it_m->Mature){
+              Adults5 += 1;
+            }
+            break;
+            case 6:
+             Male_Mass6 += it_m->size;
+             Male_Density6 += 1;
+            if (it_m->Mature){
+              Adults6 += 1;
+            }
+            break;
+            case 7:
+             Male_Mass7 += it_m->size;
+             Male_Density7 += 1;
+            if (it_m->Mature){
+              Adults7 += 1;
+            }
+            break;
+
+          }
         }
 
         Timefile << Time * delta_t << '\t' << Female_Density << '\t'
-        << Female_Mass << '\t'  << Male_Density << '\t' << Male_Mass << '\t' << Adults <<'\t' ;
+        << Female_Mass << '\t'  << Male_Density << '\t' << Male_Mass << '\t' << Adults <<'\t'
+        << Female_Density << '\t'
+        << Female_Mass1 << '\t'  << Male_Density1 << '\t' << Male_Mass1 << '\t' << Adults1 <<'\t'
+        << Female_Density1 << '\t'
+        << Female_Mass2 << '\t'  << Male_Density2 << '\t' << Male_Mass2 << '\t' << Adults2 <<'\t'
+        << Female_Density3 << '\t'
+        << Female_Mass3 << '\t'  << Male_Density3 << '\t' << Male_Mass3 << '\t' << Adults3 <<'\t'
+
+        << Female_Density4 << '\t'
+        << Female_Mass4 << '\t'  << Male_Density4 << '\t' << Male_Mass4 << '\t' << Adults4 <<'\t'
+
+        << Female_Density5 << '\t'
+        << Female_Mass5 << '\t'  << Male_Density5 << '\t' << Male_Mass5 << '\t' << Adults5 <<'\t'
+
+        << Female_Density6 << '\t'
+        << Female_Mass6 << '\t'  << Male_Density6 << '\t' << Male_Mass6 << '\t' << Adults6 <<'\t'
+
+        << Female_Density7 << '\t'
+        << Female_Mass7 << '\t'  << Male_Density7 << '\t' << Male_Mass7 << '\t' << Adults7 <<'\t' ;
         for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
             print_resourceDensity(Timefile, *it_r);
             Timefile << "\t";
@@ -530,11 +717,18 @@ LogFile << "___________________________________________" << endl;
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     LogFile << "Removing death animals takes " << duration.count() << " microseconds" << endl;
+    LogFile << "Size of the new population is " << Malesvec.size() + Femalesvec.size() << endl;
     if ((Output_time > 0) &&
        ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
        (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
     Timefile << duration.count() << '\t';}
     #endif
+
+    //Exit when population is extinct
+    if(Femalesvec.size()<=0 && Malesvec.size()<=0){
+      std::cerr<<"The consumer population is extinct at time " << Time * delta_t << "\n";
+      exit(1);
+    }
 
 /*------------------------Mating-------------------------------*/
     if(!clonal){
@@ -566,7 +760,6 @@ LogFile << "___________________________________________" << endl;
       mate = weighted_random_known_sums_floats(cumsum ,RandomVal, cumsum.size()); //roulette wheel selection with binary search
       auto it_m = next(Malesvec.begin(), mate);
       it_f->Matings += 1;
-      (*it_m)->Matings += 1;
       //Write mate choice to matefile
       if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
           Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
@@ -652,11 +845,6 @@ LogFile << "___________________________________________" << endl;
 
 
 /*------------------------Create output-------------------------------------------------*/
-    //Exit when population is extinct
-    if(Femalesvec.size()<=0 && Malesvec.size()<=0){
-      std::cerr<<"The consumer population is extinct at time " << Time * delta_t << "\n";
-      exit(1);
-    }
 
     Time += 1;
     T_Time +=1;

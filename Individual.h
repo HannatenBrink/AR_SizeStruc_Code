@@ -38,6 +38,7 @@ class Individual {
 
 /*------------------Friends---------------------------------------*/
   friend std::ostream& print_individual(std::ostream& os, const Individual& s);
+  friend std::ostream& print_individualnames(std::ostream& os);
   friend std::ostream& print_traitsindividual(std::ostream& os, const Individual& s);
 
 public:

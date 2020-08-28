@@ -87,14 +87,22 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
 
 /*------------------Mating function---------------------------------------*/
 
+
 void Individual::SexualRepro(Individual& male) {
   //decide upon number of offspring and clear the repro buffer//
+  //print_individualnames(std::cout);
+  //std::cout << std::endl;
+
   Offspring = std::trunc(this->repro_buffer/1) + std::trunc(male.repro_buffer/1);
   this->repro_buffer = std::fmod(this->repro_buffer, 1);
   male.repro_buffer = std::fmod(male.repro_buffer, 1);
   this->Fecund = false;
   male.Fecund = false;
-
+  /*std::cout << "Mother and father traits: " << std::endl;
+  print_individual(std::cout, *this);
+  std::cout << std::endl;
+  print_individual(std::cout, male);
+  std::cout << std::endl << std::endl;*/
   //for loop over number of offspring//
   for(int k = 0; k < Offspring; ++k){
     std::vector<int> mating_alleles_mother;
@@ -106,13 +114,16 @@ void Individual::SexualRepro(Individual& male) {
 
     //get the mating alleles of the mother//
     for(j = 0; j < N_mating; ++j) {
-      if(unif(mt_rand) > 0.5) {mating_alleles_mother.push_back(this->mating_trait_alleles_f[j]);} else {
+      if(unif(mt_rand) > 0.5) {
+        mating_alleles_mother.push_back(this->mating_trait_alleles_f[j]);} else {
         mating_alleles_mother.push_back(this->mating_trait_alleles_m[j]);
-      }
+       }
     }
     //get the mating alleles of the father//
     for(j = 0; j < N_mating; ++j) {
-      if(unif(mt_rand) > 0.5) {mating_alleles_father.push_back(male.mating_trait_alleles_f[j]);} else {
+      if(unif(mt_rand) > 0.5) {
+        mating_alleles_father.push_back(male.mating_trait_alleles_f[j]);}
+        else {
         mating_alleles_father.push_back(male.mating_trait_alleles_m[j]);
       }
     }
@@ -150,6 +161,8 @@ void Individual::SexualRepro(Individual& male) {
       neutral_alleles_mother, neutral_alleles_father,
       eco_alleles_mother, eco_alleles_father,
       sex_off,  AllFood, 1));
+    //print_individual(std::cout, *IndivPtr);
+    //std::cout << std::endl;
     if(sex_off == 1){
       JuvFemalesvec.push_back(move(IndivPtr));
     } else {
