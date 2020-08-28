@@ -277,6 +277,8 @@ public:
 
 
   /*------------------Mutations---------------------------------------*/
+  void Mate_mut_diallic();
+
   void Mate_mut();
 
   void Neutral_mut();

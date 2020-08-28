@@ -194,7 +194,7 @@ void Individual::ClonalRepro() {
 }
 
 /*---------------------------------------Mutate---------------------------------------*/
-inline void Individual::Mate_mut(){
+inline void Individual::Mate_mut_diallic(){
   for(int_it = this->mating_trait_alleles_f.begin(); int_it != this->mating_trait_alleles_f.end(); ++int_it) {
     if(unif(mt_rand) < mut_rate_di) {
       *int_it *= -1;
@@ -203,6 +203,29 @@ inline void Individual::Mate_mut(){
   for(int_it = this->mating_trait_alleles_m.begin(); int_it != this->mating_trait_alleles_m.end(); ++int_it) {
     if(unif(mt_rand) < mut_rate_di) {
       *int_it *= -1;
+    }
+  }
+}
+
+inline void Individual::Mate_mut(){
+  for(int_it = this->mating_trait_alleles_f.begin(); int_it != this->mating_trait_alleles_f.end(); ++int_it) {
+    if(unif(mt_rand) < mut_rate) {
+      *int_doub += MutNorm(mt_rand);
+      if(*int_doub > 1){
+        *int_doub = 1;
+      } else if(*int_doub < -1){
+        *int_doub = -1;
+      }
+    }
+  }
+  for(int_it = this->mating_trait_alleles_m.begin(); int_it != this->mating_trait_alleles_m.end(); ++int_it) {
+    if(unif(mt_rand) < mut_rate) {
+    *int_doub += MutNorm(mt_rand);
+    if(*int_doub > 1){
+      *int_doub = 1;
+    } else if(*int_doub < -1){
+      *int_doub = -1;
+    }
     }
   }
 }

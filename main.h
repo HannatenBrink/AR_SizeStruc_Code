@@ -335,7 +335,7 @@ vector<double> neutral_traits_m_ini;
 vector<double> ecological_traits_f_ini;
 vector<double> ecological_traits_m_ini;
 
-int p = 1;
+/*int p = 1;
 if(N_mating && (ini_mate != 0 && ini_mate != 1 && ini_mate != -1)){
         std::cerr << "Initial average mating trait should be -1, 0, or 1" << std::endl;
         exit(1);
@@ -352,6 +352,11 @@ if(ini_mate == 0) {
   mate_traits_f_ini.push_back(ini_mate);
   mate_traits_m_ini.push_back(ini_mate);
 }
+}*/
+
+for(i = 0; i < N_mating; ++i){
+  neutral_traits_f_ini.push_back(ini_mate);
+  neutral_traits_m_ini.push_back(ini_mate);
 }
 
 for(i = 0; i < N_neutral; ++i){
