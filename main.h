@@ -357,8 +357,8 @@ if(ini_mate == 0) {
 }*/
 
 for(i = 0; i < N_mating; ++i){
-  neutral_traits_f_ini.push_back(ini_mate);
-  neutral_traits_m_ini.push_back(ini_mate);
+  mate_traits_f_ini.push_back(ini_mate);
+  mate_traits_m_ini.push_back(ini_mate);
 }
 
 for(i = 0; i < N_neutral; ++i){
