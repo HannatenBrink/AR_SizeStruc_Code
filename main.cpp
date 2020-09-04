@@ -772,7 +772,7 @@ LogFile << "___________________________________________" << endl;
       mate = weighted_random_known_sums_floats(cumsum, RandomVal, cumsum.size()); //roulette wheel selection with binary search
       auto it_m = next(Malesvec.begin(), mate);
       //cout << "Chosen Male ecotrait: " << (*it_m)->ecological_trait << " its mating prob: " << (*it_m)->matingProb << endl;
-      if((*it_m)->Fecund) {
+      if(((*it_m)->Fecund) & (Tot > 0)) {
       it_f->Matings += 1;
       //Write mate choice to matefile
       if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {

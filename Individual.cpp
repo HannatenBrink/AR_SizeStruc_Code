@@ -64,9 +64,9 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
         dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->neutral_trait - female.neutral_trait)/female.AssM),2));
       }
       if(female.mating_trait > 0){
-        this->matingProb = dif + eps;
+        this->matingProb = dif;
       } else if (female.mating_trait < 1){
-        this->matingProb = 1 - dif + eps;
+        this->matingProb = female.AssM - dif; //To make sure probability is not below 0.
       }
     } else {
       this->matingProb = 1;
@@ -74,6 +74,9 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
   } else {
     this->matingProb = 0;
   }
+   if(this->matingProb < pow(10,-10)){
+     this->matingProb = 0;
+   }
 
       total += this->matingProb;
       vec.push_back(total);
