@@ -654,6 +654,7 @@ LogFile << "___________________________________________" << endl;
     tot3 = 0;
     start = std::chrono::high_resolution_clock::now();
     #endif
+
     //Feed and grow and die//
     for (auto&& it_f : Femalesvec){
       it_f->R_Intake(AllFood, Feeding);
@@ -673,15 +674,20 @@ LogFile << "___________________________________________" << endl;
     #endif
 
 
-
-
 /*------------------------Growth of Resources-------------------------------------------*/
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
     #endif
 
     for(i = 0, it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r, ++i){
+        //print_resourceName(cout, *it_r);
+        //cout << endl << "Before eating the total density is: ";
+        //print_resourceDensity(cout, *it_r);
         it_r->Growth(Feeding[i], RmaxChange[i]);
+        //cout << endl;
+        //cout << "Resource eaten is " << Feeding[i]/volume << endl << "After feeding the total density is: ";
+        //print_resourceDensity(cout, *it_r);
+        //cout << endl;
     }
     Feeding.clear(); //empty the feeding vector
 
@@ -733,6 +739,7 @@ LogFile << "___________________________________________" << endl;
     }
 
 /*------------------------Mating-------------------------------*/
+    shuffle(Femalesvec.begin(), Femalesvec.end(), mt_rand); //necessary because females that choose first have higher prob to find a fecund mate
     if(!clonal){
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();
@@ -746,12 +753,15 @@ LogFile << "___________________________________________" << endl;
       if (it_f->Fecund) {
       vector<double> cumsum;
       Tot = 0;
-
+      //cout << "Female eco trait: " << it_f->ecological_trait << " mating trait: " << it_f->mating_trait << endl;
       #ifdef TIMECHECK
       start2 = std::chrono::high_resolution_clock::now();
       #endif
+      //int test = 0;
       for (auto&& it_m : Malesvec){
         it_m->MateProb(*it_f, cumsum, Tot); //calculate probabilities
+        //cout << "Male " << test << " fecund: " << it_m->Fecund << " ecotrait: " << it_m->ecological_trait << " its mating prob: " << it_m->matingProb << endl;
+        //test += 1;
       }
       #ifdef TIMECHECK
       stop2 = std::chrono::high_resolution_clock::now();
@@ -759,8 +769,10 @@ LogFile << "___________________________________________" << endl;
       Tot2 += dur2.count();
       #endif
       RandomVal = unif(mt_rand) * Tot;
-      mate = weighted_random_known_sums_floats(cumsum ,RandomVal, cumsum.size()); //roulette wheel selection with binary search
+      mate = weighted_random_known_sums_floats(cumsum, RandomVal, cumsum.size()); //roulette wheel selection with binary search
       auto it_m = next(Malesvec.begin(), mate);
+      //cout << "Chosen Male ecotrait: " << (*it_m)->ecological_trait << " its mating prob: " << (*it_m)->matingProb << endl;
+      if((*it_m)->Fecund) {
       it_f->Matings += 1;
       //Write mate choice to matefile
       if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
@@ -774,6 +786,7 @@ LogFile << "___________________________________________" << endl;
           (*it_m)->mating_trait << endl;
       }
       it_f->SexualRepro(**it_m);
+      }
     }}
     if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)||(round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
         T_Mate = 0;
@@ -855,6 +868,7 @@ LogFile << "___________________________________________" << endl;
     T_Mate += 1;
 
 }
+
   LogFile << "... Finished with the simulation" << endl << endl;
 
 /*------------------------End of the timeloop-------------------------------------------*/
@@ -943,6 +957,5 @@ catch(InterruptException& e) //Try to write to output in case of interruption
 
         return 1;
       }
-
     return 0;
   }

@@ -7,6 +7,7 @@
 class Resource {
   friend std::ostream& print_resource(std::ostream&, const Resource&);
   friend std::ostream& print_resourceDensity(std::ostream&, const Resource&);
+  friend std::ostream& print_resourceDensityTotal(std::ostream&, const Resource&);
   friend std::ostream& print_resourceInfo(std::ostream&, const Resource&);
 
   public:

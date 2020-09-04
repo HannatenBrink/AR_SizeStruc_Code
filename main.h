@@ -30,6 +30,7 @@ double MAX_EXP = 50;
 //When is something zero?
 double eps = pow(10,-9);
 double N_ini = 5; //initial number of individuals per sex & age group (total is 4*N_ini)
+int Nr_Res = 7;
 
 double phi; //Ontogenetic shift
 double psi;
@@ -149,7 +150,7 @@ return guess;
 
 //Species identities///
 
-int Nr_Res = 7;
+
 std::vector<double> SpeciesDiv;
 
 //Printing functions//
@@ -264,6 +265,10 @@ inline std::ostream& print_resource(std::ostream& os, const Resource& s){
 }
 inline std::ostream& print_resourceDensity(std::ostream& os, const Resource& s){
     os << s.Density;
+    return os;
+}
+inline std::ostream& print_resourceDensityTotal(std::ostream& os, const Resource& s){
+    os << s.Density * s.Volume;
     return os;
 }
 inline std::ostream& print_resourceName(std::ostream& os, const Resource& s){

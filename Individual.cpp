@@ -9,7 +9,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   Starve = false;
   Fecund = false;
 
-  for(i = 0, it_r = AllResource.begin(); it_r < AllResource.end(); ++it_r, ++i){
+  for(i = 0, it_r = AllResource.begin(); it_r != AllResource.end(); ++it_r, ++i){
     if(i > 0){
     Value = (1 - phi) * this->attack_constants[i] * pow(this->size, qpow) * it_r->Density;
     Total += Value;
@@ -29,7 +29,6 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   std::transform (FeedVec.begin(), FeedVec.end(), Intake.begin(), FeedVec.begin(), std::plus<double>());
 
   this->NetProd = alphapar * IntakeTot - kmet * pow(this->size, pmain);
-
   //Growth and death//
   age += delta_t; //increase in age
   if(age >= MaxAge){ //Old and therefore dead
@@ -59,26 +58,23 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 //AM depends on either a neutral trait or the ecological trait//
 Individual& Individual::MateProb(const Individual& female, std::vector<double> &vec, double &total){
       if (this->Fecund){
-      if (female.mating_trait == 0){
-        this->matingProb = 1;
-      } else if (female.mating_trait > 0) {
+      if (female.mating_trait != 0){
         if (N_neutral == 0) {
-          dif = pow((female.ecological_trait - this->ecological_trait),2);
-        } else {
-          dif = pow((female.neutral_trait - this->neutral_trait),2);
-        }
-        this->matingProb = exp(female.AssM * dif);
-      } else {
-        if (N_neutral == 0) {
-          dif = pow(2 - std::abs(female.ecological_trait - this->ecological_trait),2);
-        } else {
-          dif = pow(2 - std::abs(female.neutral_trait - this->neutral_trait),2);
-        }
-        this->matingProb = exp(female.AssM * dif);
-      }}
-      else {
-        this->matingProb = 0;
+        dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->ecological_trait - female.ecological_trait)/female.AssM),2));} else {
+        dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->neutral_trait - female.neutral_trait)/female.AssM),2));
       }
+      if(female.mating_trait > 0){
+        this->matingProb = dif + eps;
+      } else if (female.mating_trait < 1){
+        this->matingProb = 1 - dif + eps;
+      }
+    } else {
+      this->matingProb = 1;
+    }
+  } else {
+    this->matingProb = 0;
+  }
+
       total += this->matingProb;
       vec.push_back(total);
       return *this;

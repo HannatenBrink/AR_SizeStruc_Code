@@ -8,6 +8,7 @@
 #include "Resource.h"
 #include <memory>
 #include <algorithm>
+#include "cmath"
 
 extern int i;
 extern int j;
@@ -31,7 +32,7 @@ extern double Value; //temp variable to calculate food intake
 extern int sex_off; //temp variable to hold sex
 extern int Offspring; //Number of offspring
 extern double dif; //Difference in trait between two parents
-
+extern double eps;
 
 
 class Individual {
@@ -73,7 +74,8 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
-        AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass),2);
+        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
+        AssM = s_ass/pow(mating_trait, 2);
 
         //determine maximum age of an individual
         MaxAge = mxage;
@@ -115,7 +117,8 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
-        AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass),2);
+        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
+        AssM = s_ass/pow(mating_trait,2);
 
         //determine maximum age of an individual
         MaxAge = mxage;
@@ -153,7 +156,8 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strenght of assortative mating
-        AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass),2);
+        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
+        AssM = s_ass/pow(mating_trait,2);
         //determine maximum age of an individual
         MaxAge = mxage;
 
@@ -200,7 +204,8 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
-        AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass),2);
+        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
+        AssM = s_ass/pow(mating_trait,2);
 
         //determine maximum age of an individual
         MaxAge = Surv_age(mt_rand);
@@ -253,7 +258,8 @@ public:
       ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
       //strenght of assortative mating
-      AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass),2);
+      //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
+      AssM = s_ass/pow(mating_trait,2);
 
       //determine maximum age of an individual
       MaxAge = Surv_age(mt_rand);
