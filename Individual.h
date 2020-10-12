@@ -16,6 +16,7 @@ extern std::vector<int>::iterator int_it; //iterator over integers
 extern std::vector<double>::iterator int_doub; //iterator over doubles
 extern std::mt19937 mt_rand; //random number gen
 extern std::uniform_real_distribution<double> unif; //uniform dist
+extern std::uniform_int_distribution<> IDNR_Rand;
 extern std::normal_distribution<double> MutNorm; //normal dist
 extern std::exponential_distribution<double> Surv_age; //exponential dist
 extern std::vector<Resource>::iterator it_r; //iterator over resources
@@ -47,13 +48,12 @@ public:
   /*------------------Constructor---------------------------------------*/
 
     //Old individuals no mut, all 3 genotypes (assortative mating based on neutral trait)//
-    Individual(double age, double size, const int sex, double mxage, bool Mat,
-    //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
+    Individual(double age, double size, const int sex, int Mating, double mxage, bool Mat,
     std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     std::vector<Resource>& AllFood)
-      : size(size), age(age),  Mature(Mat), sex(sex),
+      : size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
@@ -91,21 +91,24 @@ public:
 
         //Feeding efficiencies
         for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+          if(it_r->Tau>=2000){
+            attack_constants.push_back(Amax);
+          } else {
           attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
          }
       }
+    }
 
     //Old individuals no mut, 2 genotypes (assortative mating based on eco trait)//
-    Individual(double age, double size, const int sex, double mxage, bool Mat,
+    Individual(double idnr, double age, double size, const int sex, int Mating, double reprobuf, double mxage, bool Mat,
       //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : size(size), age(age),  Mature(Mat), sex(sex),
+      : IDNR(idnr), size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),repro_buffer(reprobuf),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
-        repro_buffer = 0;
         Starve = false;
         Fecund = false;
         Is_dead = false;
@@ -133,17 +136,19 @@ public:
         }
 
         //Feeding efficiencies
-        for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
-          attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
-         }
-
+         for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+           if(it_r->Tau>=2000){
+             attack_constants.push_back(Amax);
+           } else {
+           attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
+          }}
       }
 
     //Old individuals no mut, 1 genotype (clonal repro)//
-    Individual(double age, double size, const int sex, double mxage, bool Mat,
+    Individual(double age, double size, const int sex, int Mating, double mxage, bool Mat,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : size(size), age(age),  Mature(Mat), sex(sex),
+      : size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
         repro_buffer = 0;
@@ -172,8 +177,12 @@ public:
         //These are correct//
 
         for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+          if(it_r->Tau>=2000){
+            attack_constants.push_back(Amax);
+          } else {
           attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
          }
+        }
       }
 
 
@@ -189,12 +198,14 @@ public:
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
         age = 0;
+        Matings = 0;
         size = size_birth;
         repro_buffer = 0;
         Starve = false;
         Fecund = false;
         Is_dead = false;
         Mature = false;
+        IDNR = IDNR_Rand(mt_rand);
         if (N_neutral) {
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
@@ -221,8 +232,12 @@ public:
 
         //feeding efficiency
         for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+          if(it_r->Tau>=2000){
+            attack_constants.push_back(Amax);
+          } else {
           attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
          }
+        }
 
       }
 
@@ -238,12 +253,14 @@ public:
     ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
     {
       age = 0;
+      Matings = 0;
       size = size_birth;
       repro_buffer = 0;
       Starve = false;
       Fecund = false;
       Is_dead = false;
       Mature = false;
+      IDNR = IDNR_Rand(mt_rand);
       if(mut == 1){
       this->Mate_mut();
       this->Eco_mut();
@@ -275,8 +292,12 @@ public:
 
       //feeding efficiency
       for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+        if(it_r->Tau>=2000){
+          attack_constants.push_back(Amax);
+        } else {
         attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
        }
+      }
 
     }
 
@@ -317,12 +338,13 @@ public:
   bool Fecund;
   double size;
   int SpeciesID;
+  double IDNR;
   bool Starve;
   double NetProd;
   double age;
   double ecological_trait;
   double neutral_trait;
-  double Matings = 0;
+  double Matings;
   bool Mature;
   double MaxAge;
   double AssM;

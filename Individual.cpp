@@ -67,6 +67,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
         this->matingProb = dif;
       } else if (female.mating_trait < 1){
         this->matingProb = female.AssM - dif; //To make sure probability is not below 0.
+        //should this not be 1/(female.assM*sqrt(2*Pi))
       }
     } else {
       this->matingProb = 1;
@@ -210,7 +211,7 @@ void Individual::ClonalRepro() {
 
 inline void Individual::Mate_mut(){
   for(int_doub = this->mating_trait_alleles_f.begin(); int_doub != this->mating_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
       *int_doub += MutNorm(mt_rand);
       if(*int_doub > 1){
         *int_doub = 1;
@@ -220,7 +221,7 @@ inline void Individual::Mate_mut(){
     }
   }
   for(int_doub = this->mating_trait_alleles_m.begin(); int_doub != this->mating_trait_alleles_m.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
     *int_doub += MutNorm(mt_rand);
     if(*int_doub > 1){
       *int_doub = 1;
@@ -248,10 +249,12 @@ inline void Individual::Eco_mut() {
   for(int_doub = ecological_trait_alleles_f.begin(); int_doub != ecological_trait_alleles_f.end(); ++int_doub) {
     if(unif(mt_rand) < mut_rate) {
       *int_doub += MutNorm(mt_rand);
+      *int_doub = abs(*int_doub);
     }}
     for(int_doub = this->ecological_trait_alleles_m.begin(); int_doub != this->ecological_trait_alleles_m.end(); ++int_doub) {
       if(unif(mt_rand) < mut_rate) {
         *int_doub += MutNorm(mt_rand);
+        *int_doub = abs(*int_doub);
       }}
     }
 

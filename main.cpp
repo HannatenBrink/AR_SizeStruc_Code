@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
   LogFile << endl << "________________________________________" << endl << endl;
 
  /*--------------------------------Define variables-------------------------------------------*/
-   MutNorm.param(std::normal_distribution<double>(0,mut_std).param());
+   MutNorm.param(std::normal_distribution<double>(0, mut_std).param());
    unif.param(std::uniform_real_distribution<double>(0.0, 1.0).param());
    Surv_age.param(exponential_distribution<double>((mu_b)).param());
 
@@ -177,10 +177,11 @@ int main(int argc, char* argv[]) {
     Init_Env();
   } else {
     LogFile << "Initialization occurs via the isf file\n";
+    //The new runs will have as first element the ID of the individual, and in addition reprobuffer
 
     double RB_init, R1_init, R2_init, R3_init, R4_init, R5_init, R6_init, Volume_init;
     double age_init, size_init, mating_trait_init, eco_trait_init, neutral_trait_init, MaxAge_init;
-    double dummy;
+    double dummy, idnr, reprobuf;
     int sex_init, id, Mature, Matings;
     int i = 0;
     while (getline(InitPop, line)){
@@ -247,18 +248,20 @@ int main(int argc, char* argv[]) {
                   eco_m.push_back(dummy);
               }
           if(sex_init == 1) {
-            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
+            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
               eco_m, eco_f, AllFood));
               Femalesvec.push_back(move(IndivPtr));
           } else {
-            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
+            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
               eco_m, eco_f, AllFood));
             Malesvec.push_back(move(IndivPtr));
           }
          }
         else if(N_mating){
-          linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
-              eco_trait_init >> Mature >> Matings >> MaxAge_init;
+          //linestream >>  age_init >> size_init >> sex_init >> id >> mating_trait_init >>
+            //  eco_trait_init >> Mature >> Matings >> MaxAge_init;
+            linestream >>  idnr >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
+                eco_trait_init >> Mature >> Matings >> reprobuf >> MaxAge_init;
           //cout << "Age_init is " << age_init << endl;
           for(int j = 0; j < N_mating; ++j) {
                   linestream >> dummy;
@@ -276,8 +279,8 @@ int main(int argc, char* argv[]) {
                   linestream >> dummy;
                   eco_m.push_back(dummy);
               }
-          unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, mating_f, mating_m,
-                eco_m, eco_f,  AllFood));
+          unique_ptr<Individual> IndivPtr(new Individual(idnr, age_init, size_init, sex_init, Matings, reprobuf, MaxAge_init, Mature, mating_f, mating_m,
+                eco_m, eco_f,  AllFood)); //already changed.
           if(sex_init == 1) {
               Femalesvec.push_back(move(IndivPtr));
           } else {
@@ -295,7 +298,7 @@ int main(int argc, char* argv[]) {
                    linestream >> dummy;
                    eco_m.push_back(dummy);
                }
-               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, MaxAge_init, Mature, eco_f, eco_m,   AllFood));
+               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, eco_f, eco_m,   AllFood));
            if(sex_init == 1) {
                Femalesvec.push_back(move(IndivPtr));
            } else {
@@ -354,8 +357,10 @@ int main(int argc, char* argv[]) {
   print_traitsindividualnames(Traitfile);
   Traitfile << endl;
 
-  Matefile <<"Time" <<"\t" << "f_age" << "\t" << "f_size" << "\t" << "f_eco" << "\t" << "f_neu" << "\t" << "f_mating" <<"\t" << "m_age" << "\t" << "m_size" << "\t" <<
-    "m_eco" << "\t" << "m_neu" << "\t" << "m_mating" << endl;
+  Matefile <<"Time" <<"\t" << "f_age" << "\t" << "f_size" << "\t" << "f_eco" << "\t" << "f_neu" << "\t" <<
+  "f_mating" <<"\t" << "f_reprobuf" << '\t' << "f_ID" << '\t' << "f_IDNR" << '\t' <<
+  "m_age" << "\t" << "m_size" << "\t" <<
+    "m_eco" << "\t" << "m_neu" << "\t" << "m_mating" << '\t' << "m_reprobuf" << '\t'<<  "m_id" << '\t' << "m_IDNR" << endl;
 
 /*------------------------------Set variables to raise exceptions------------------------------------*/
   struct sigaction sigIntHandler;
@@ -749,6 +754,7 @@ LogFile << "___________________________________________" << endl;
       auto Tot2 = dur2.count();
       Tot2 = 0;
       #endif
+
     for (auto&& it_f : Femalesvec) {
       if (it_f->Fecund) {
       vector<double> cumsum;
@@ -774,20 +780,45 @@ LogFile << "___________________________________________" << endl;
       //cout << "Chosen Male ecotrait: " << (*it_m)->ecological_trait << " its mating prob: " << (*it_m)->matingProb << endl;
       if(((*it_m)->Fecund) & (Tot > 0)) {
       it_f->Matings += 1;
+      (*it_m)->Matings += 1;
       //Write mate choice to matefile
       if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
           Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
           it_f->ecological_trait << "\t"
           << it_f->neutral_trait << "\t" <<
           it_f->mating_trait << "\t" <<
+          it_f->repro_buffer << "\t" <<
+          it_f->SpeciesID << "\t" <<
+          it_f->IDNR << "\t" <<
           (*it_m)->age << "\t" << (*it_m)->size << "\t" <<
           (*it_m)->ecological_trait << "\t" <<
           (*it_m)->neutral_trait << "\t" <<
-          (*it_m)->mating_trait << endl;
+          (*it_m)->mating_trait << "\t" <<
+          (*it_m)->repro_buffer << "\t" <<
+          (*it_m)->SpeciesID << "\t" <<
+          (*it_m)->IDNR << "\t" <<
+          endl;
       }
       it_f->SexualRepro(**it_m);
+    } else if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
+
+          Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
+          it_f->ecological_trait << "\t"
+          << it_f->neutral_trait << "\t" <<
+          it_f->mating_trait << "\t" <<
+          it_f->repro_buffer << "\t" <<
+          it_f->SpeciesID << "\t" <<
+          it_f->IDNR << "\t" <<
+          0 << "\t" << 0 << "\t" <<
+          0 << "\t" <<
+          0 << "\t" <<
+          0 << "\t" <<
+          0 << "\t" <<
+          0 << "\t" <<
+          0 << endl;
       }
     }}
+
     if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)||(round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
         T_Mate = 0;
         LogFile << "Writing mating combinations to matefile at time " << Time * delta_t << endl << endl;
@@ -804,6 +835,7 @@ LogFile << "___________________________________________" << endl;
     Timefile << duration.count();}
     #endif
     }
+
     else {
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();

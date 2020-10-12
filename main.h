@@ -93,6 +93,7 @@ double Adults7 = 0;
 
 mt19937 mt_rand;
 uniform_real_distribution<double> unif;
+uniform_int_distribution<> IDNR_Rand(1, 100000);
 normal_distribution<double> MutNorm;
 exponential_distribution<double> Surv_age;
 vector<int>::iterator int_it; //Iterator over integers
@@ -156,18 +157,18 @@ std::vector<double> SpeciesDiv;
 //Printing functions//
 inline std::ostream& print_individual(std::ostream& os, const Individual& s){
   if(N_neutral && N_mating){
-  os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
   << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" << s.Matings << "\t" << s.MaxAge << "\t";
+      s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t";
   }
   else if(N_mating){
-     os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+     os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
       <<  s.mating_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" << s.Matings << "\t" << s.MaxAge << "\t";
+      s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t";
 } else {
-  os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
   <<   s.ecological_trait << "\t" << s.Mature << "\t" <<
-     s.Matings << "\t" << s.MaxAge << "\t";
+     s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t";
   }
   for(i = 0; i < N_mating; ++i){
     os << s.mating_trait_alleles_f[i] << "\t";
@@ -191,18 +192,18 @@ inline std::ostream& print_individual(std::ostream& os, const Individual& s){
 }
 inline std::ostream& print_individualnames(std::ostream& os) {
   if(N_neutral && N_mating){
-  os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
+  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
   << "m_trait" << "\t" << "n_trait" << "\t" << "eco_trait" << "\t" <<
      "Mature" << "\t" <<
-       "Matings" << "\t" << "MaxAge" << "\t";
+       "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t";
   } else if (N_mating){
-      os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
-         << "m_trait" << "\t"  << "eco_trait" << "\t" <<  "Mature" << "\t" << "Matings" << "\t" << "MaxAge" << "\t";
+      os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
+         << "m_trait" << "\t"  << "eco_trait" << "\t" <<  "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t";
   }
 
   else {
-  os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
-    <<  "eco_trait" << "\t" <<  "Mature" << "\t" <<"Matings" << "\t" <<" MaxAge" << "\t";
+  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "ID" << "\t"
+    <<  "eco_trait" << "\t" <<  "Mature" << "\t" <<"Matings" << "\t" << "ReproBuffer" << "\t" <<" MaxAge" << "\t";
 }
   for(i = 0; i < N_mating; ++i){
     os << "m_A_f" << i << "\t";
@@ -226,35 +227,35 @@ inline std::ostream& print_individualnames(std::ostream& os) {
 }
 inline std::ostream& print_traitsindividual(std::ostream& os, const Individual& s){
   if(N_neutral && N_mating){
-  os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
   << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t" <<
   s.Mature << "\t" <<
-      s.Matings << '\t' << s.MaxAge;
+      s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge;
   } else if (N_mating) {
-      os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+      os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
       << s.mating_trait << "\t" << s.ecological_trait << "\t" << s.Mature << "\t" <<
-        s.Matings << '\t' << s.MaxAge;
+        s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge;
   }
   else {
-  os << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
+  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t" << s.sex << "\t" << s.SpeciesID << "\t"
   << s.ecological_trait << "\t" << s.Mature << "\t" <<
-    s.Matings << '\t' << s.MaxAge;
+    s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge;
 }
   return os;
 }
 inline std::ostream& print_traitsindividualnames(std::ostream& os){
   if(N_neutral && N_mating){
-  os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
+  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
    << "m_trait" << "\t" << "n_trait" << "\t"
-  << "eco_trait "<< "\t" << "Mature" << "\t" << "Matings" << "MaxAge" << std::endl;
+  << "eco_trait "<< "\t" << "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << std::endl;
   } else if (N_mating){
-      os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
+      os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
       << "m_trait" << "\t"
-        << "eco_trait " << "\t" <<   "Mature" << "\t" << "Matings" << '\t' << "MaxAge" << std::endl;
+        << "eco_trait " << "\t" <<   "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << '\t' << "MaxAge" << std::endl;
   }
   else {
-  os << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
-    << "eco_trait " << "\t" <<  "Mature" << "\t" << "Matings" << '\t' << "MaxAge" << std::endl;
+  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t" << "sex" << "\t" << "SpeciesID" << "\t"
+    << "eco_trait " << "\t" <<  "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << '\t' << "MaxAge" << std::endl;
 }
   return os;
 }
@@ -384,10 +385,10 @@ for(int k = 0; k < N_ini; ++k){
   unique_ptr<Individual> IndivPtr2(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini, 0, AllFood));
 
-  unique_ptr<Individual> IndivPtr3(new Individual(0, 100, 1, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr3(new Individual(0, 100, 1, 0, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
-  unique_ptr<Individual> IndivPtr4(new Individual(0, 100, 0, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr4(new Individual(0, 100, 0, 0, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
   Femalesvec.push_back(move(IndivPtr1));
