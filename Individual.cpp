@@ -74,7 +74,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
   } else {
     this->matingProb = 0;
   }
-   if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing 
+   if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing
      this->matingProb = 0;
    }
 
@@ -257,7 +257,7 @@ inline void Individual::Eco_mut() {
       }}
     }
 
-/*-----Sorting operator----*/
+/*-----Sorting operators---*/
 inline bool Individual::operator <(Individual const& IndividualObj)const
 	{
 		return age < IndividualObj.age;

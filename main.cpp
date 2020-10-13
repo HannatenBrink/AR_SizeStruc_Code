@@ -605,26 +605,16 @@ LogFile << "___________________________________________" << endl;
           }
         }
 
-        Timefile << Time * delta_t << '\t' << Female_Density << '\t'
-        << Female_Mass << '\t'  << Male_Density << '\t' << Male_Mass << '\t' << Adults <<'\t'
-        << Female_Density << '\t'
-        << Female_Mass1 << '\t'  << Male_Density1 << '\t' << Male_Mass1 << '\t' << Adults1 <<'\t'
-        << Female_Density1 << '\t'
-        << Female_Mass2 << '\t'  << Male_Density2 << '\t' << Male_Mass2 << '\t' << Adults2 <<'\t'
-        << Female_Density3 << '\t'
-        << Female_Mass3 << '\t'  << Male_Density3 << '\t' << Male_Mass3 << '\t' << Adults3 <<'\t'
+        Timefile << Time * delta_t << '\t'
+        << Female_Density << '\t'  << Female_Mass  << '\t'  << Male_Density  << '\t' << Male_Mass  << '\t' << Adults <<'\t'
+        << Female_Density1 << '\t' << Female_Mass1 << '\t'  << Male_Density1 << '\t' << Male_Mass1 << '\t' << Adults1 <<'\t'
+        << Female_Density2 << '\t' << Female_Mass2 << '\t'  << Male_Density2 << '\t' << Male_Mass2 << '\t' << Adults2 <<'\t'
+        << Female_Density3 << '\t' << Female_Mass3 << '\t'  << Male_Density3 << '\t' << Male_Mass3 << '\t' << Adults3 <<'\t'
+        << Female_Density4 << '\t' << Female_Mass4 << '\t'  << Male_Density4 << '\t' << Male_Mass4 << '\t' << Adults4 <<'\t'
+        << Female_Density5 << '\t' << Female_Mass5 << '\t'  << Male_Density5 << '\t' << Male_Mass5 << '\t' << Adults5 <<'\t'
+        << Female_Density6 << '\t' << Female_Mass6 << '\t'  << Male_Density6 << '\t' << Male_Mass6 << '\t' << Adults6 <<'\t'
+        << Female_Density7 << '\t' << Female_Mass7 << '\t'  << Male_Density7 << '\t' << Male_Mass7 << '\t' << Adults7 <<'\t' ;
 
-        << Female_Density4 << '\t'
-        << Female_Mass4 << '\t'  << Male_Density4 << '\t' << Male_Mass4 << '\t' << Adults4 <<'\t'
-
-        << Female_Density5 << '\t'
-        << Female_Mass5 << '\t'  << Male_Density5 << '\t' << Male_Mass5 << '\t' << Adults5 <<'\t'
-
-        << Female_Density6 << '\t'
-        << Female_Mass6 << '\t'  << Male_Density6 << '\t' << Male_Mass6 << '\t' << Adults6 <<'\t'
-
-        << Female_Density7 << '\t'
-        << Female_Mass7 << '\t'  << Male_Density7 << '\t' << Male_Mass7 << '\t' << Adults7 <<'\t' ;
         for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
             print_resourceDensity(Timefile, *it_r);
             Timefile << "\t";
@@ -744,7 +734,11 @@ LogFile << "___________________________________________" << endl;
     }
 
 /*------------------------Mating-------------------------------*/
-    shuffle(Femalesvec.begin(), Femalesvec.end(), mt_rand); //necessary because females that choose first have higher prob to find a fecund mate
+    //shuffle(Femalesvec.begin(), Femalesvec.end(), mt_rand); //necessary because females that choose first have higher prob to find a fecund mate
+    //maybe better to shuffle it depending on reproductive buffer? In this way maybe less mate limitation?
+    //downside is that a female that can't find a mate because she has a rare trait, might ultimately have a rare mating opportunity.
+    sort(Femalesvec.begin(), Femalesvec.end(), cmp_by_repro);
+
     if(!clonal){
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();
@@ -754,7 +748,6 @@ LogFile << "___________________________________________" << endl;
       auto Tot2 = dur2.count();
       Tot2 = 0;
       #endif
-
     for (auto&& it_f : Femalesvec) {
       if (it_f->Fecund) {
       vector<double> cumsum;
@@ -799,7 +792,7 @@ LogFile << "___________________________________________" << endl;
           (*it_m)->IDNR << "\t" <<
           endl;
       }
-      it_f->SexualRepro(**it_m);
+      it_f->SexualRepro(**it_m); //reproduce
     } else if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
 
           Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<

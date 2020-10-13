@@ -330,8 +330,9 @@ public:
   void SexualRepro(Individual&);
   void ClonalRepro();
 
-  /*-------------------Sorting based on age---------------------------------*/
-  bool operator <(Individual const & IndividualObj)const;
+  /*-------------------Sorting based on age ---------------------------------*/
+  bool operator <(Individual const & IndividualObj)const; 
+
 
 
   /*------------------Data members public---------------------------------------*/

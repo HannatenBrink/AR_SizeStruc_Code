@@ -397,3 +397,8 @@ for(int k = 0; k < N_ini; ++k){
   Malesvec.push_back(move(IndivPtr4));
 }
 }
+
+bool cmp_by_repro(const std::unique_ptr<Individual> &a, const std::unique_ptr<Individual> &b)
+{
+    return a->repro_buffer > b->repro_buffer;
+}
