@@ -46,21 +46,22 @@ extern std::vector<double> Parameter;
 
 
 #define s_ass        Parameter[32]
-#define N_eco        Parameter[33]
-#define N_neutral    Parameter[34] //If this one is zero, ecological character determines assortative mating. Otherwise the neutral trait
-#define N_mating     Parameter[35]
-#define mut_std      Parameter[36]
-#define mut_rate     Parameter[37]
-#define mut_rate_di  Parameter[38]
+#define s_diss       Parameter[33]
+#define N_eco        Parameter[34]
+#define N_neutral    Parameter[35] //If this one is zero, ecological character determines assortative mating. Otherwise the neutral trait
+#define N_mating     Parameter[36]
+#define mut_std      Parameter[37]
+#define mut_rate     Parameter[38]
+#define mut_rate_di  Parameter[39]
 
-#define delta_t      Parameter[39]
-#define volume       Parameter[40]
+#define delta_t      Parameter[40]
+#define volume       Parameter[41]
 
-#define clonal       Parameter[41]
+#define clonal       Parameter[42]
 
-#define ini_eco      Parameter[42]
-#define ini_mate     Parameter[43]
-#define ini_neutral  Parameter[44]
+#define ini_eco      Parameter[43]
+#define ini_mate     Parameter[44]
+#define ini_neutral  Parameter[45]
 
 
 

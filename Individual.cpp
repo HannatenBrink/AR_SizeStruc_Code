@@ -53,8 +53,8 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 
 
 /*--------------------Calculate mating probability---------------------------------------*/
-//Following Bolnick & Doebeli//
-//where parameter s is the importance of assortative mating//
+//Following Doebeli & Dieckmann//
+//where parameter s_ass/s_diss is the importance of assortative mating//
 //AM depends on either a neutral trait or the ecological trait//
 Individual& Individual::MateProb(const Individual& female, std::vector<double> &vec, double &total){
       if (this->Fecund){
@@ -66,8 +66,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
       if(female.mating_trait > 0){
         this->matingProb = dif;
       } else if (female.mating_trait < 1){
-        this->matingProb = female.AssM - dif; //To make sure probability is not below 0.
-        //should this not be 1/(female.assM*sqrt(2*Pi))
+        this->matingProb = 1 - dif; //female.AssM - dif; //should this not be 1/(female.assM*sqrt(2*Pi))
       }
     } else {
       this->matingProb = 1;
@@ -75,7 +74,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
   } else {
     this->matingProb = 0;
   }
-   if(this->matingProb < pow(10,-10)){
+   if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing 
      this->matingProb = 0;
    }
 

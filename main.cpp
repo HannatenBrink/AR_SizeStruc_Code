@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
   "Theta1" , "Theta2" , "Theta3" , "Theta4" ,"Theta5" , "Theta6" , "TauB" ,
   "Tau1", "Tau2" , "Tau3" , "Tau4" , "Tau5" , "Tau6" ,
   "Amax" , "qpow" , "h" , "npow" , "alphapar" , "kmet" , "pmain" , "u" , "eta" , "epsilon" ,
-  "mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "N_eco" , "N_neutral" , "N_mating" ,
+  "mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "s_diss", "N_eco" , "N_neutral" , "N_mating" ,
   "mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral"};
 
   int f = 0;

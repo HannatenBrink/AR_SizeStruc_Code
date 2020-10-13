@@ -120,8 +120,13 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
+        if(mating_trait > 0){
+          AssM = s_ass/pow(mating_trait,2);
+        } else {
+          AssM = s_diss/pow(mating_trait,2);
+        }
         //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-        AssM = s_ass/pow(mating_trait,2);
+        //AssM = s_ass/pow(mating_trait,2);
 
         //determine maximum age of an individual
         MaxAge = mxage;
