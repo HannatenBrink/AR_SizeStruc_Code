@@ -178,16 +178,18 @@ int main(int argc, char* argv[]) {
   } else {
     LogFile << "Initialization occurs via the isf file\n";
     //The new runs will have as first element the ID of the individual, and in addition reprobuffer
-
+    //Has to change in the code
+    Time = Starttime_init;
     double RB_init, R1_init, R2_init, R3_init, R4_init, R5_init, R6_init, Volume_init;
     double age_init, size_init, mating_trait_init, eco_trait_init, neutral_trait_init, MaxAge_init;
-    double dummy, idnr, reprobuf;
-    int sex_init, id, Mature, Matings;
+    double dummy, idnr, reprobuf, nrStarve;
+    int id, Mature, Matings;
     int i = 0;
     while (getline(InitPop, line)){
       stringstream linestream(line);
       if (i == 1) {
         linestream >> Starttime_init >> Volume_init >> RB_init >> R1_init >> R2_init >> R3_init >> R4_init >> R5_init >> R6_init;
+        Time = Starttime_init/delta_t;
         Resource RB(RB_init, RJmax, volume, ThetaB, TauB, "RB");
         Resource R1(R1_init, RAmax, volume, Theta1, Tau1, "R1");
         Resource R2(R2_init, RAmax, volume, Theta2, Tau2, "R2");
@@ -220,9 +222,8 @@ int main(int argc, char* argv[]) {
         vector <double> eco_m;
         vector <double> neutral_m;
         if(N_neutral && N_mating){
-          linestream >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
-              neutral_trait_init >> eco_trait_init >> Mature >> Matings >> MaxAge_init;
-          //cout << "Age_init is " << age_init << endl;
+          linestream >> idnr >> age_init >> size_init >>  id >> mating_trait_init >>
+              neutral_trait_init >> eco_trait_init >> Mature >> Matings >> reprobuf >> MaxAge_init;
           for(int j = 0; j < N_mating; ++j) {
                   linestream >> dummy;
                   mating_f.push_back(dummy);
@@ -247,20 +248,18 @@ int main(int argc, char* argv[]) {
                   linestream >> dummy;
                   eco_m.push_back(dummy);
               }
-          if(sex_init == 1) {
-            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
+            unique_ptr<Individual> IndivPtr(new Individual(idnr, age_init, size_init, Matings, reprobuf, MaxAge_init, Mature,  mating_f, mating_m, neutral_f, neutral_m,
               eco_m, eco_f, AllFood));
-              Femalesvec.push_back(move(IndivPtr));
-          } else {
-            unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, mating_f, mating_m, neutral_f, neutral_m,
-              eco_m, eco_f, AllFood));
-            Malesvec.push_back(move(IndivPtr));
-          }
+              if(Mature) {
+                Advec.push_back(move(IndivPtr));
+              } else {
+                Juvvec.push_back(move(IndivPtr));
+              }
          }
         else if(N_mating){
           //linestream >>  age_init >> size_init >> sex_init >> id >> mating_trait_init >>
             //  eco_trait_init >> Mature >> Matings >> MaxAge_init;
-            linestream >>  idnr >> age_init >> size_init >> sex_init >> id >> mating_trait_init >>
+            linestream >>  idnr >> age_init >> size_init >> id >> mating_trait_init >>
                 eco_trait_init >> Mature >> Matings >> reprobuf >> MaxAge_init;
           //cout << "Age_init is " << age_init << endl;
           for(int j = 0; j < N_mating; ++j) {
@@ -279,17 +278,17 @@ int main(int argc, char* argv[]) {
                   linestream >> dummy;
                   eco_m.push_back(dummy);
               }
-          unique_ptr<Individual> IndivPtr(new Individual(idnr, age_init, size_init, sex_init, Matings, reprobuf, MaxAge_init, Mature, mating_f, mating_m,
+          unique_ptr<Individual> IndivPtr(new Individual(idnr, age_init, size_init, Matings, reprobuf, MaxAge_init, Mature, mating_f, mating_m,
                 eco_m, eco_f,  AllFood)); //already changed.
-          if(sex_init == 1) {
-              Femalesvec.push_back(move(IndivPtr));
+          if(Mature) {
+            Advec.push_back(move(IndivPtr));
           } else {
-              Malesvec.push_back(move(IndivPtr));
+            Juvvec.push_back(move(IndivPtr));
           }
          }
         else {
-           linestream >> age_init >> size_init >> sex_init >> id >>
-               eco_trait_init >> Mature >> Matings >> MaxAge_init;
+           linestream >> idnr >> age_init >> size_init >>  id >>
+               eco_trait_init >> Mature >> Matings >> reprobuf >> MaxAge_init >> nrStarve;
            for(int j = 0; j < N_eco; ++j) {
                    linestream >> dummy;
                    eco_f.push_back(dummy);
@@ -298,12 +297,12 @@ int main(int argc, char* argv[]) {
                    linestream >> dummy;
                    eco_m.push_back(dummy);
                }
-               unique_ptr<Individual> IndivPtr(new Individual(age_init, size_init, sex_init, Matings, MaxAge_init, Mature, eco_f, eco_m,   AllFood));
-           if(sex_init == 1) {
-               Femalesvec.push_back(move(IndivPtr));
-           } else {
-              Malesvec.push_back(move(IndivPtr));
-           }
+               unique_ptr<Individual> IndivPtr(new Individual(idnr, age_init, size_init, Matings, reprobuf, MaxAge_init, Mature, eco_f, eco_m,   AllFood));
+               if(Mature) {
+                 Advec.push_back(move(IndivPtr));
+               } else {
+                 Juvvec.push_back(move(IndivPtr));
+               }
           }
       }
       i += 1;
@@ -316,7 +315,8 @@ int main(int argc, char* argv[]) {
   LogFile << "Initialization of the population takes " << duration.count() << " microseconds" << endl;
   #endif
 
-  LogFile << "The initial population size is " << Femalesvec.size() + Malesvec.size() << endl;
+  LogFile << "The initial population size is " << Advec.size()+Juvvec.size()
+    << endl;
   LogFile << "...End of initializing the population" << endl;
   LogFile << endl << "________________________________________" << endl << endl;
 
@@ -325,22 +325,15 @@ int main(int argc, char* argv[]) {
 
   LogFile << "Add names of variables to the files, and initialize variables..." << endl;
 
-  Timefile << "Time" << '\t' << "Females" << '\t' << "FemaleMass" << '\t' <<
-   "Males" << '\t' << "MaleMass" << '\t' << "Adults" << '\t'
-   << "Females1" << '\t' << "FemaleMass1" << '\t' <<
-    "Males1" << '\t' << "MaleMass1" << '\t' << "Adults1" << '\t'
-    << "Females2" << '\t' << "FemaleMass2" << '\t' <<
-     "Males2" << '\t' << "MaleMass2" << '\t' << "Adults2" << '\t'
-     << "Females3" << '\t' << "FemaleMass3" << '\t' <<
-      "Males3" << '\t' << "MaleMass3" << '\t' << "Adults3" << '\t'
-      << "Females4" << '\t' << "FemaleMass4" << '\t' <<
-       "Males4" << '\t' << "MaleMass4" << '\t' << "Adults4" << '\t'
-       << "Females5" << '\t' << "FemaleMass5" << '\t' <<
-        "Males5" << '\t' << "MaleMass5" << '\t' << "Adults5" << '\t'
-        << "Females6" << '\t' << "FemaleMass6" << '\t' <<
-         "Males6" << '\t' << "MaleMass6" << '\t' << "Adults6" << '\t'
-         << "Females7" << '\t' << "FemaleMass7" << '\t' <<
-          "Males7" << '\t' << "MaleMass7" << '\t' << "Adults7" << '\t';
+  Timefile << "Time" << '\t' << "Starve" << '\t' << "OverCons" << '\t' <<
+   "PopSize" << '\t' << "PopMass" << '\t' << "Adults" << '\t' <<
+   "PopSize1" << '\t' << "PopMass1" << '\t' << "Adults1" << '\t' <<
+   "PopSize2" << '\t' << "PopMass2" << '\t' << "Adults2" << '\t' <<
+   "PopSize3" << '\t' << "PopMass3" << '\t' << "Adults3" << '\t' <<
+   "PopSize4" << '\t' << "PopMass4" << '\t' << "Adults4" << '\t' <<
+   "PopSize5" << '\t' << "PopMass5" << '\t' << "Adults5" << '\t' <<
+   "PopSize6" << '\t' << "PopMass6" << '\t' << "Adults6" << '\t' <<
+   "PopSize7" << '\t' << "PopMass7" << '\t' << "Adults7" << '\t';
   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Timefile, *it_r);
     Timefile << "\t";}
@@ -377,7 +370,7 @@ LogFile << "___________________________________________" << endl;
 
   try
   {
-    Time = Starttime_init;
+    //Time = Starttime_init;
 
     while (Time <= newtime)  {
       #ifdef TIMECHECK
@@ -391,14 +384,14 @@ LogFile << "___________________________________________" << endl;
       start = std::chrono::high_resolution_clock::now();
       #endif
       T_POP = 0;
-      for (auto&& it_f : Femalesvec){
+      for (auto&& it_f : Juvvec){
         Traitfile << Time * delta_t << "\t";
         print_traitsindividual(Traitfile, *it_f);
         Traitfile << endl;
       }
-      for (auto&& it_m : Malesvec){
+      for (auto&& it_f : Advec){
         Traitfile << Time * delta_t << "\t";
-        print_traitsindividual(Traitfile, *it_m);
+        print_traitsindividual(Traitfile, *it_f);
         Traitfile << endl;
       }
       #ifdef TIMECHECK
@@ -415,16 +408,17 @@ LogFile << "___________________________________________" << endl;
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_POP_FULL = 0;
-        for (auto&& it_f : Femalesvec){
+        for (auto&& it_f : Advec){
           FullTraitfile << Time * delta_t << "\t";
           print_individual(FullTraitfile, *it_f);
           FullTraitfile << endl;
         }
-        for (auto&& it_m : Malesvec){
+        for (auto&& it_f : Juvvec){
           FullTraitfile << Time * delta_t << "\t";
-          print_individual(FullTraitfile, *it_m);
+          print_individual(FullTraitfile, *it_f);
           FullTraitfile << endl;
         }
+
         #ifdef TIMECHECK
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -438,182 +432,125 @@ LogFile << "___________________________________________" << endl;
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_Time = 0;
-          Female_Density = Femalesvec.size();
-          Male_Density = Malesvec.size();
-          Female_Mass = 0;
-          Male_Mass = 0;
+          Pop_Density = Advec.size() + Juvvec.size();
+          Pop_Mass = 0;
           Adults = 0;
 
-          Female_Density1 = 0;
-          Male_Density1 = 0;
-          Female_Mass1 = 0;
-          Male_Mass1 = 0;
+          Pop_Density1 = 0;
+          Pop_Mass1 = 0;
           Adults1 = 0;
 
-          Female_Density2 = 0;
-          Male_Density2 = 0;
-          Female_Mass2 = 0;
-          Male_Mass2 = 0;
+          Pop_Density2 = 0;
+          Pop_Mass2 = 0;
           Adults2 = 0;
 
-          Female_Density3 = 0;
-          Male_Density3 = 0;
-          Female_Mass3 = 0;
-          Male_Mass3 = 0;
+          Pop_Density3 = 0;
+          Pop_Mass3 = 0;
           Adults3 = 0;
 
-          Female_Density4 = 0;
-          Male_Density4 = 0;
-          Female_Mass4 = 0;
-          Male_Mass4 = 0;
+          Pop_Density4 = 0;
+          Pop_Mass4 = 0;
           Adults4 = 0;
 
-          Female_Density5 = 0;
-          Male_Density5 = 0;
-          Female_Mass5 = 0;
-          Male_Mass5 = 0;
+          Pop_Density5 = 0;
+          Pop_Mass5 = 0;
           Adults5 = 0;
 
-          Female_Density6 = 0;
-          Male_Density6 = 0;
-          Female_Mass6 = 0;
-          Male_Mass6 = 0;
+          Pop_Density6 = 0;
+          Pop_Mass6 = 0;
           Adults6 = 0;
 
-          Female_Density7 = 0;
-          Male_Density7 = 0;
-          Female_Mass7 = 0;
-          Male_Mass7 = 0;
+          Pop_Density7 = 0;
+          Pop_Mass7 = 0;
           Adults7 = 0;
 
-        for (auto&& it_f : Femalesvec){
-          Female_Mass += it_f->size;
-          if (it_f->Mature){
-            Adults += 1;
-          }
+        for (auto&& it_f : Advec){
+          Pop_Mass += it_f->size;
+          Adults += 1;
           switch(it_f->SpeciesID) {
             case 1:
-            Female_Mass1 += it_f->size;
-            Female_Density1 += 1;
-            if (it_f->Mature){
-              Adults1 += 1;
-            }
+            Pop_Mass1 += it_f->size;
+            Pop_Density1 += 1;
+            Adults1 += 1;
             break;
             case 2:
-            Female_Mass2 += it_f->size;
-            Female_Density2 += 1;
-            if (it_f->Mature){
-              Adults2 += 1;
-            }
+            Pop_Mass2 += it_f->size;
+            Pop_Density2 += 1;
+            Adults2 += 1;
             break;
             case 3:
-            Female_Mass3 += it_f->size;
-            Female_Density3 += 1;
-            if (it_f->Mature){
-              Adults3 += 1;
-            }
+            Pop_Mass3 += it_f->size;
+            Pop_Density3 += 1;
+            Adults3 += 1;
             break;
             case 4:
-            Female_Mass4 += it_f->size;
-            Female_Density4 += 1;
-            if (it_f->Mature){
-              Adults4 += 1;
-            }
+            Pop_Mass4 += it_f->size;
+            Pop_Density4 += 1;
+            Adults4 += 1;
             break;
             case 5:
-            Female_Mass5 += it_f->size;
-            Female_Density5 += 1;
-            if (it_f->Mature){
-              Adults5 += 1;
-            }
+            Pop_Mass5 += it_f->size;
+            Pop_Density5 += 1;
+            Adults5 += 1;
             break;
             case 6:
-            Female_Mass6 += it_f->size;
-            Female_Density6 += 1;
-            if (it_f->Mature){
-              Adults6 += 1;
-            }
+            Pop_Mass6 += it_f->size;
+            Pop_Density6 += 1;
+            Adults6 += 1;
             break;
             case 7:
-            Female_Mass7 += it_f->size;
-            Female_Density7 += 1;
-            if (it_f->Mature){
-              Adults7 += 1;
-            }
+            Pop_Mass7 += it_f->size;
+            Pop_Density7 += 1;
+            Adults7 += 1;
             break;
 
           }
         }
-
-        for (auto&& it_m : Malesvec){
-          Male_Mass += it_m -> size;
-          if (it_m->Mature){
-            Adults += 1;
-          }
-
-          switch(it_m->SpeciesID) {
+        for (auto&& it_f : Juvvec){
+          Pop_Mass += it_f->size;
+          switch(it_f->SpeciesID) {
             case 1:
-             Male_Mass1 += it_m->size;
-             Male_Density1 += 1;
-            if (it_m->Mature){
-              Adults1 += 1;
-            }
+            Pop_Mass1 += it_f->size;
+            Pop_Density1 += 1;
             break;
             case 2:
-             Male_Mass2 += it_m->size;
-             Male_Density2 += 1;
-            if (it_m->Mature){
-              Adults2 += 1;
-            }
+            Pop_Mass2 += it_f->size;
+            Pop_Density2 += 1;
             break;
             case 3:
-             Male_Mass3 += it_m->size;
-             Male_Density3 += 1;
-            if (it_m->Mature){
-              Adults3 += 1;
-            }
+            Pop_Mass3 += it_f->size;
+            Pop_Density3 += 1;
             break;
             case 4:
-             Male_Mass4 += it_m->size;
-             Male_Density4 += 1;
-            if (it_m->Mature){
-              Adults4 += 1;
-            }
+            Pop_Mass4 += it_f->size;
+            Pop_Density4 += 1;
             break;
             case 5:
-             Male_Mass5 += it_m->size;
-             Male_Density5 += 1;
-            if (it_m->Mature){
-              Adults5 += 1;
-            }
+            Pop_Mass5 += it_f->size;
+            Pop_Density5 += 1;
             break;
             case 6:
-             Male_Mass6 += it_m->size;
-             Male_Density6 += 1;
-            if (it_m->Mature){
-              Adults6 += 1;
-            }
+            Pop_Mass6 += it_f->size;
+            Pop_Density6 += 1;
             break;
             case 7:
-             Male_Mass7 += it_m->size;
-             Male_Density7 += 1;
-            if (it_m->Mature){
-              Adults7 += 1;
-            }
+            Pop_Mass7 += it_f->size;
+            Pop_Density7 += 1;
             break;
 
           }
         }
 
-        Timefile << Time * delta_t << '\t'
-        << Female_Density << '\t'  << Female_Mass  << '\t'  << Male_Density  << '\t' << Male_Mass  << '\t' << Adults <<'\t'
-        << Female_Density1 << '\t' << Female_Mass1 << '\t'  << Male_Density1 << '\t' << Male_Mass1 << '\t' << Adults1 <<'\t'
-        << Female_Density2 << '\t' << Female_Mass2 << '\t'  << Male_Density2 << '\t' << Male_Mass2 << '\t' << Adults2 <<'\t'
-        << Female_Density3 << '\t' << Female_Mass3 << '\t'  << Male_Density3 << '\t' << Male_Mass3 << '\t' << Adults3 <<'\t'
-        << Female_Density4 << '\t' << Female_Mass4 << '\t'  << Male_Density4 << '\t' << Male_Mass4 << '\t' << Adults4 <<'\t'
-        << Female_Density5 << '\t' << Female_Mass5 << '\t'  << Male_Density5 << '\t' << Male_Mass5 << '\t' << Adults5 <<'\t'
-        << Female_Density6 << '\t' << Female_Mass6 << '\t'  << Male_Density6 << '\t' << Male_Mass6 << '\t' << Adults6 <<'\t'
-        << Female_Density7 << '\t' << Female_Mass7 << '\t'  << Male_Density7 << '\t' << Male_Mass7 << '\t' << Adults7 <<'\t' ;
+
+        Timefile << Time * delta_t << '\t' << TotStarv << '\t' << OverCons << '\t'//remove the starve
+        << Pop_Density << '\t'  << Pop_Mass  << '\t'  << Adults <<'\t'
+        << Pop_Density1 << '\t' << Pop_Mass1 << '\t'  << Adults1 <<'\t'
+        << Pop_Density2 << '\t' << Pop_Mass2 << '\t'  << Adults2 <<'\t'
+        << Pop_Density3 << '\t' << Pop_Mass3 << '\t'  << Adults3 <<'\t'
+        << Pop_Density4 << '\t' << Pop_Mass4 << '\t'  << Adults4 <<'\t'
+        << Pop_Density5 << '\t' << Pop_Mass5 << '\t'  << Adults5 <<'\t'
+        << Pop_Density6 << '\t' << Pop_Mass6 << '\t'  << Adults6 <<'\t'
+        << Pop_Density7 << '\t' << Pop_Mass7 << '\t'  << Adults7 <<'\t' ;
 
         for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
             print_resourceDensity(Timefile, *it_r);
@@ -649,14 +586,25 @@ LogFile << "___________________________________________" << endl;
     tot3 = 0;
     start = std::chrono::high_resolution_clock::now();
     #endif
-
+    TotStarv = 0;
+    OverCons = 0;
     //Feed and grow and die//
-    for (auto&& it_f : Femalesvec){
+    for (auto&& it_f : Advec){
       it_f->R_Intake(AllFood, Feeding);
     }
-    for (auto&& it_m : Malesvec){
-      it_m->R_Intake(AllFood, Feeding);
+
+    //cout << "Before growth Size of the juvvec is " << Juvvec.size() << " Adult size is " << Advec.size() << endl;
+    for (auto&& it_f : Juvvec){
+      it_f->R_Intake(AllFood, Feeding);
+      if(it_f->Mature){
+        Advec.push_back(std::move(it_f)); //move mature individuals to adults
+      }
     }
+    //cout << "After growth, Size of the juvvec is " << Juvvec.size() << " Adult size is " << Advec.size() << endl;
+
+    //cout << "After removing, Size of the juvvec is " << Juvvec.size() << " Adult size is " << Advec.size() << endl;
+
+
 
     #ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
@@ -667,7 +615,20 @@ LogFile << "___________________________________________" << endl;
        (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
     Timefile << duration.count() << '\t';}
     #endif
-
+    #ifdef TIMECHECK
+    start = std::chrono::high_resolution_clock::now();
+    #endif
+    Juvvec.erase(std::remove(begin(Juvvec), end(Juvvec), nullptr),
+             end(Juvvec));
+             #ifdef TIMECHECK
+             stop = std::chrono::high_resolution_clock::now();
+             duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+             LogFile << "Removing empty juv takes " << duration.count() << " microseconds" << endl;
+             if ((Output_time > 0) &&
+                ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
+                (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+             Timefile << duration.count() << '\t';}
+             #endif
 
 /*------------------------Growth of Resources-------------------------------------------*/
     #ifdef TIMECHECK
@@ -709,18 +670,16 @@ LogFile << "___________________________________________" << endl;
     start = std::chrono::high_resolution_clock::now();
     #endif
 
-    Femalesvec.erase(std::remove_if(Femalesvec.begin(), Femalesvec.end(),
-    [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Femalesvec.end());
+    Advec.erase(std::remove_if(Advec.begin(), Advec.end(), [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Advec.end());
+    Juvvec.erase(std::remove_if(Juvvec.begin(), Juvvec.end(), [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Juvvec.end());
 
-    Malesvec.erase(std::remove_if(Malesvec.begin(), Malesvec.end(),
-    [](std::unique_ptr<Individual> &tst) { return tst->Is_dead;}), Malesvec.end());
 
 
     #ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     LogFile << "Removing death animals takes " << duration.count() << " microseconds" << endl;
-    LogFile << "Size of the new population is " << Malesvec.size() + Femalesvec.size() << endl;
+    LogFile << "Size of the new population is " << Advec.size() << endl;
     if ((Output_time > 0) &&
        ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
        (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
@@ -728,16 +687,13 @@ LogFile << "___________________________________________" << endl;
     #endif
 
     //Exit when population is extinct
-    if(Femalesvec.size()<=0 && Malesvec.size()<=0){
+    if(Advec.size()<=0 && Juvvec.size()<=0){
       std::cerr<<"The consumer population is extinct at time " << Time * delta_t << "\n";
       exit(1);
     }
 
 /*------------------------Mating-------------------------------*/
-    //shuffle(Femalesvec.begin(), Femalesvec.end(), mt_rand); //necessary because females that choose first have higher prob to find a fecund mate
-    //maybe better to shuffle it depending on reproductive buffer? In this way maybe less mate limitation?
-    //downside is that a female that can't find a mate because she has a rare trait, might ultimately have a rare mating opportunity.
-    sort(Femalesvec.begin(), Femalesvec.end(), cmp_by_repro);
+
 
     if(!clonal){
       #ifdef TIMECHECK
@@ -748,7 +704,11 @@ LogFile << "___________________________________________" << endl;
       auto Tot2 = dur2.count();
       Tot2 = 0;
       #endif
-    for (auto&& it_f : Femalesvec) {
+      //shuffle(Advec.begin(), Advec.end(), mt_rand); //necessary because females that choose first have higher prob to find a fecund mate
+      //maybe better to shuffle it depending on reproductive buffer? In this way maybe less mate limitation?
+      //downside is that a female that can't find a mate because she has a rare trait, might ultimately have a rare mating opportunity.
+      sort(Advec.begin(), Advec.end(), cmp_by_repro); //sort
+    for (auto&& it_f : Advec) {
       if (it_f->Fecund) {
       vector<double> cumsum;
       Tot = 0;
@@ -757,9 +717,16 @@ LogFile << "___________________________________________" << endl;
       start2 = std::chrono::high_resolution_clock::now();
       #endif
       //int test = 0;
-      for (auto&& it_m : Malesvec){
+      for (auto&& it_m : Advec){
+        if(it_m == it_f){
+         it_m->matingProb = 0;
+         cumsum.push_back(Tot);
+         //cout << "Male " << test << " fecund: " << it_m->Fecund << " ecotrait female: " << it_f->ecological_trait << " ecotrait: " << it_m->ecological_trait << " its mating prob: " << it_m->matingProb << endl;
+        }
+        else {
         it_m->MateProb(*it_f, cumsum, Tot); //calculate probabilities
-        //cout << "Male " << test << " fecund: " << it_m->Fecund << " ecotrait: " << it_m->ecological_trait << " its mating prob: " << it_m->matingProb << endl;
+        //cout << "Male " << test << " fecund: " << it_m->Fecund << " ecotrait female: " << it_f->ecological_trait << " ecotrait: " << it_m->ecological_trait << " its mating prob: " << it_m->matingProb << endl;
+        }
         //test += 1;
       }
       #ifdef TIMECHECK
@@ -769,11 +736,12 @@ LogFile << "___________________________________________" << endl;
       #endif
       RandomVal = unif(mt_rand) * Tot;
       mate = weighted_random_known_sums_floats(cumsum, RandomVal, cumsum.size()); //roulette wheel selection with binary search
-      auto it_m = next(Malesvec.begin(), mate);
-      //cout << "Chosen Male ecotrait: " << (*it_m)->ecological_trait << " its mating prob: " << (*it_m)->matingProb << endl;
+      auto it_m = next(Advec.begin(), mate);
+      //cout << "Ecotrait female: " << it_f->ecological_trait << " Chosen Male ecotrait: " << (*it_m)->ecological_trait << " its mating prob: " << (*it_m)->matingProb << endl;
       if(((*it_m)->Fecund) & (Tot > 0)) {
       it_f->Matings += 1;
       (*it_m)->Matings += 1;
+      it_f->SexualRepro(**it_m); //reproduce
       //Write mate choice to matefile
       if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
           Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
@@ -792,7 +760,6 @@ LogFile << "___________________________________________" << endl;
           (*it_m)->IDNR << "\t" <<
           endl;
       }
-      it_f->SexualRepro(**it_m); //reproduce
     } else if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
 
           Matefile << Time * delta_t << "\t" << it_f->age << "\t" << it_f->size << "\t" <<
@@ -833,16 +800,12 @@ LogFile << "___________________________________________" << endl;
       #ifdef TIMECHECK
       start = std::chrono::high_resolution_clock::now();
       #endif
-      for (auto&& it_f : Femalesvec){
+      for (auto&& it_f : Advec){
         if (it_f->Fecund) {
           it_f->ClonalRepro();
           it_f->Matings += 1;}
       }
-      for (auto&& it_m : Malesvec){
-        if (it_m->Fecund) {
-          it_m->ClonalRepro();
-          it_m->Matings +=1;}
-      }
+
       #ifdef TIMECHECK
       stop = std::chrono::high_resolution_clock::now();
       duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -860,28 +823,25 @@ LogFile << "___________________________________________" << endl;
 
 
 /*------------------------Add juveniles to the pop------------------------------------*/
-    #ifdef TIMECHECK
+    /*#ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
-    #endif
+    #endif*/
 
-    Femalesvec.insert(Femalesvec.end(),
-    std::make_move_iterator(JuvFemalesvec.begin()),
-    std::make_move_iterator(JuvFemalesvec.end()));
+  /*  Advec.insert(Advec.end(),
+    std::make_move_iterator(Juvvec.begin()),
+    std::make_move_iterator(Juvvec.end()));*/
 
-     Malesvec.insert(Malesvec.end(),
-     std::make_move_iterator(JuvMalesvec.begin()),
-     std::make_move_iterator(JuvMalesvec.end()));
 
-    #ifdef TIMECHECK
+    /*#ifdef TIMECHECK
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     LogFile << "Adding newborns to the population takes " << duration.count() << " microseconds" << endl;
-    #endif
+    #endif*/
 
 
     //Clear the newborn vector
-    JuvFemalesvec.clear();
-    JuvMalesvec.clear();
+    //Juvvec.clear();
+
 
 
 /*------------------------Create output-------------------------------------------------*/
@@ -918,15 +878,15 @@ LogFile << "___________________________________________" << endl;
   print_individualnames(Endfile);
   Endfile << endl;
 
-  for (auto&& it_f : Femalesvec){
+  for (auto&& it_f : Advec){
+    print_individual(Endfile, *it_f);
+    Endfile << endl;
+  }
+  for (auto&& it_f : Juvvec){
     print_individual(Endfile, *it_f);
     Endfile << endl;
   }
 
-  for (auto&& it_m : Malesvec){
-    print_individual(Endfile, *it_m);
-    Endfile << endl;
-  }
 
   LogFile << "\nSimulation ended at time " << Time * delta_t - delta_t << endl;
   cout << "Simulation ended at time " << Time * delta_t - delta_t << endl;
@@ -961,12 +921,12 @@ catch(InterruptException& e) //Try to write to output in case of interruption
 
         print_individualnames(Endfile);
         Endfile << "\n" << endl;
-        for (auto&& it_f : Femalesvec){
+        for (auto&& it_f : Advec){
           print_individual(Endfile, *it_f);
           Endfile << endl;
         }
-        for (auto&& it_m : Malesvec){
-          print_individual(Endfile, *it_m);
+        for (auto&& it_f : Juvvec){
+          print_individual(Endfile, *it_f);
           Endfile << endl;
         }
 

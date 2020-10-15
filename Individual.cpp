@@ -6,7 +6,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 
   phi = 1 - 1/(1 + exp(-(this->size - m_shift)));
   Intake.clear();
-  Starve = false;
+  //Starve = false;
   Fecund = false;
 
   for(i = 0, it_r = AllResource.begin(); it_r != AllResource.end(); ++it_r, ++i){
@@ -43,11 +43,13 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
       Mature = true;
     }
   } else {  //starvation mortality
-    this->Starve = true;
+    this->Starve += 1;
+    TotStarv += 1;
     if (- this->NetProd / (Xi * this->size) * delta_t > unif(mt_rand)){
         this->Is_dead = 1;
   }
 }
+
 
 }
 
@@ -57,13 +59,14 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 //where parameter s_ass/s_diss is the importance of assortative mating//
 //AM depends on either a neutral trait or the ecological trait//
 Individual& Individual::MateProb(const Individual& female, std::vector<double> &vec, double &total){
-      if (this->Fecund){
+      //if( ((this->IDNR == female.IDNR) & (this->ecological_trait == female.ecological_trait)) | (this->Fecund==0)) {
+       if(this->Fecund)  {
       if (female.mating_trait != 0){
         if (N_neutral == 0) {
         dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->ecological_trait - female.ecological_trait)/female.AssM),2));} else {
         dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->neutral_trait - female.neutral_trait)/female.AssM),2));
       }
-      if(female.mating_trait > 0){
+      if (female.mating_trait > 0){
         this->matingProb = dif;
       } else if (female.mating_trait < 1){
         this->matingProb = 1 - dif; //female.AssM - dif; //should this not be 1/(female.assM*sqrt(2*Pi))
@@ -71,12 +74,12 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
     } else {
       this->matingProb = 1;
     }
+      if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing
+      this->matingProb = 0;
+    }
   } else {
     this->matingProb = 0;
   }
-   if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing
-     this->matingProb = 0;
-   }
 
       total += this->matingProb;
       vec.push_back(total);
@@ -154,21 +157,15 @@ void Individual::SexualRepro(Individual& male) {
     }
 
 
-    //determine the sex of the newborn//
-    if(unif(mt_rand) > 0.5) {sex_off = 1;} else {sex_off = 0;}
-
     //Create a newborn, mutate the alleles, and add to the juvenile population//
     std::unique_ptr<Individual> IndivPtr(new Individual(mating_alleles_mother, mating_alleles_father,
       neutral_alleles_mother, neutral_alleles_father,
       eco_alleles_mother, eco_alleles_father,
-      sex_off,  AllFood, 1));
+      AllFood, 1));
     //print_individual(std::cout, *IndivPtr);
     //std::cout << std::endl;
-    if(sex_off == 1){
-      JuvFemalesvec.push_back(move(IndivPtr));
-    } else {
-      JuvMalesvec.push_back(move(IndivPtr));
-    }
+      Juvvec.push_back(move(IndivPtr));
+
   }
 }
 
@@ -179,18 +176,14 @@ void Individual::ClonalRepro() {
   this->Fecund = false;
   //for loop over number of offspring//
   for(int k = 0; k < Offspring; ++k){
-    //determine the sex of the newborn//
-    if(unif(mt_rand) > 0.5) {sex_off = 1;} else {sex_off = 0;}
+
     //create newborn, mutate alleles, and add to the population
       std::unique_ptr<Individual> IndivPtr(new Individual(this->mating_trait_alleles_f, this->mating_trait_alleles_m,
         this->neutral_trait_alleles_f, this->neutral_trait_alleles_m,
         this->ecological_trait_alleles_f , this->ecological_trait_alleles_m,
-        sex_off,  AllFood, 1));
-    if(sex_off == 1){
-      JuvFemalesvec.push_back(move(IndivPtr));
-    } else {
-      JuvMalesvec.push_back(move(IndivPtr));
-    }
+    AllFood, 1));
+      Juvvec.push_back(move(IndivPtr));
+
   }
 }
 

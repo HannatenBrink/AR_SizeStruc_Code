@@ -30,10 +30,10 @@ extern double psi; //Allocation to maturation
 extern double Total; //temp var to calculate food intake
 extern double IntakeTot; //Variable that holds total food intake of indiviudal
 extern double Value; //temp variable to calculate food intake
-extern int sex_off; //temp variable to hold sex
 extern int Offspring; //Number of offspring
 extern double dif; //Difference in trait between two parents
 extern double eps;
+extern int TotStarv;
 
 
 class Individual {
@@ -48,18 +48,19 @@ public:
   /*------------------Constructor---------------------------------------*/
 
     //Old individuals no mut, all 3 genotypes (assortative mating based on neutral trait)//
-    Individual(double age, double size, const int sex, int Mating, double mxage, bool Mat,
+    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
     std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     std::vector<Resource>& AllFood)
-      : size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),
+      : IDNR(idnr), size(size), age(age),  Mature(Mat),  Matings(Mating), repro_buffer(reprobuf),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
         repro_buffer = 0;
-        Starve = false;
+        //Starve = false;
+        Starve = 0;
         Fecund = false;
         Is_dead = false;
         Mature = false;
@@ -100,16 +101,17 @@ public:
     }
 
     //Old individuals no mut, 2 genotypes (assortative mating based on eco trait)//
-    Individual(double idnr, double age, double size, const int sex, int Mating, double reprobuf, double mxage, bool Mat,
+    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
       //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : IDNR(idnr), size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),repro_buffer(reprobuf),
+      : IDNR(idnr), size(size), age(age),  Mature(Mat), Matings(Mating),repro_buffer(reprobuf),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
-        Starve = false;
+        //Starve = false;
+          Starve = 0;
         Fecund = false;
         Is_dead = false;
         Mature = false;
@@ -150,14 +152,15 @@ public:
       }
 
     //Old individuals no mut, 1 genotype (clonal repro)//
-    Individual(double age, double size, const int sex, int Mating, double mxage, bool Mat,
+    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : size(size), age(age),  Mature(Mat), sex(sex), Matings(Mating),
+      : IDNR(idnr), size(size), age(age),  Mature(Mat), Matings(Mating),repro_buffer(reprobuf),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
         repro_buffer = 0;
-        Starve = false;
+        //Starve = false;
+          Starve = 0;
         Fecund = false;
         Is_dead = false;
         Mature = false;
@@ -197,8 +200,8 @@ public:
       //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
-      const int sex, std::vector<Resource>& AllFood)
-      : sex(sex), mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
+       std::vector<Resource>& AllFood)
+      :  mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
@@ -206,7 +209,8 @@ public:
         Matings = 0;
         size = size_birth;
         repro_buffer = 0;
-        Starve = false;
+        //Starve = false;
+          Starve = 0;
         Fecund = false;
         Is_dead = false;
         Mature = false;
@@ -252,8 +256,8 @@ public:
     //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
-    const int sex, std::vector<Resource>& AllFood, const int mut)
-    : sex(sex),mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
+     std::vector<Resource>& AllFood, const int mut)
+    : mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
     neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
     ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
     {
@@ -261,7 +265,8 @@ public:
       Matings = 0;
       size = size_birth;
       repro_buffer = 0;
-      Starve = false;
+      //Starve = false;
+        Starve = 0; 
       Fecund = false;
       Is_dead = false;
       Mature = false;
@@ -331,7 +336,7 @@ public:
   void ClonalRepro();
 
   /*-------------------Sorting based on age ---------------------------------*/
-  bool operator <(Individual const & IndividualObj)const; 
+  bool operator <(Individual const & IndividualObj)const;
 
 
 
@@ -345,7 +350,7 @@ public:
   double size;
   int SpeciesID;
   double IDNR;
-  bool Starve;
+  double Starve;
   double NetProd;
   double age;
   double ecological_trait;
@@ -358,9 +363,6 @@ public:
   private:
   /*------------------Data members private---------------------------------------*/
 
-  int sex;
-  //std::vector<int> mating_trait_alleles_f;
-  //std::vector<int> mating_trait_alleles_m;
   std::vector<double> mating_trait_alleles_f;
   std::vector<double> mating_trait_alleles_m;
   std::vector<double> neutral_trait_alleles_f;
@@ -373,10 +375,8 @@ public:
 
 
   extern std::vector<Resource> AllFood;
-  extern std::vector<std::unique_ptr<Individual>> Femalesvec;
-  extern std::vector<std::unique_ptr<Individual>> JuvFemalesvec;
-  extern std::vector<std::unique_ptr<Individual>> Malesvec;
-  extern std::vector<std::unique_ptr<Individual>> JuvMalesvec;
+  extern std::vector<std::unique_ptr<Individual>> Advec;
+  extern std::vector<std::unique_ptr<Individual>> Juvvec;
 
 
 #endif
