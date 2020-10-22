@@ -46,17 +46,6 @@ class Resource {
     return *this;
   }
 
-  //member function declaration// new one with delay in resource
-  /*inline Resource& Growth(double &popIntake, double &Rmaxch) {
-    double Delta_R = rho * ((this->Rmax + Rmaxch) - this->Density) - popIntake/this->Volume;
-    this->Density += Delta_R * delta_t + this->Delay;
-    if(this->Density < 0){
-      this->Delay = this->Density;
-      OverCons  += 1;
-    }
-    this->Density = std::max(0.0, this->Density);
-    return *this;
-  }*/
 
 
 };

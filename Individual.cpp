@@ -6,7 +6,6 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 
   phi = 1 - 1/(1 + exp(-(this->size - m_shift)));
   Intake.clear();
-  //Starve = false;
   Fecund = false;
 
   for(i = 0, it_r = AllResource.begin(); it_r != AllResource.end(); ++it_r, ++i){
@@ -29,6 +28,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   std::transform (FeedVec.begin(), FeedVec.end(), Intake.begin(), FeedVec.begin(), std::plus<double>());
 
   this->NetProd = alphapar * IntakeTot - kmet * pow(this->size, pmain);
+
   //Growth and death//
   age += delta_t; //increase in age
   if(age >= MaxAge){ //Old and therefore dead
@@ -59,8 +59,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 //where parameter s_ass/s_diss is the importance of assortative mating//
 //AM depends on either a neutral trait or the ecological trait//
 Individual& Individual::MateProb(const Individual& female, std::vector<double> &vec, double &total){
-      //if( ((this->IDNR == female.IDNR) & (this->ecological_trait == female.ecological_trait)) | (this->Fecund==0)) {
-       if(this->Fecund)  {
+      if(this->Fecund)  {
       if (female.mating_trait != 0){
         if (N_neutral == 0) {
         dif = 1/(female.AssM*sqrt(2*M_PI)) * exp(-0.5*pow(((this->ecological_trait - female.ecological_trait)/female.AssM),2));} else {
@@ -69,12 +68,12 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
       if (female.mating_trait > 0){
         this->matingProb = dif;
       } else if (female.mating_trait < 1){
-        this->matingProb = 1 - dif; //female.AssM - dif; //should this not be 1/(female.assM*sqrt(2*Pi))
+        this->matingProb = 1 - dif;
       }
     } else {
       this->matingProb = 1;
     }
-      if(this->matingProb < pow(10,-10)){ //waarom wil ik dit? Ja, dat wil ik, anders krijg je door matelimitation toch outcrossing
+      if(this->matingProb < pow(10,-10)){
       this->matingProb = 0;
     }
   } else {
@@ -226,12 +225,12 @@ inline void Individual::Mate_mut(){
 
 inline void Individual::Neutral_mut(){
   for(int_doub = this->neutral_trait_alleles_f.begin(); int_doub != this->neutral_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
       *int_doub += MutNorm(mt_rand);
     }
   }
   for(int_doub = this->neutral_trait_alleles_m.begin(); int_doub != this->neutral_trait_alleles_m.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
       *int_doub += MutNorm(mt_rand);
     }
   }

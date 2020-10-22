@@ -48,22 +48,19 @@ public:
   /*------------------Constructor---------------------------------------*/
 
     //Old individuals no mut, all 3 genotypes (assortative mating based on neutral trait)//
-    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
+    Individual(double idnr, double age, double size, bool Mat, int Mating, double reprobuf, double mxage,  double starv,
     std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     std::vector<Resource>& AllFood)
-      : IDNR(idnr), size(size), age(age),  Mature(Mat),  Matings(Mating), repro_buffer(reprobuf),
+      : repro_buffer(reprobuf), size(size), IDNR(idnr), Starve(starv), age(age),  Matings(Mating),  Mature(Mat),MaxAge(mxage),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
-        repro_buffer = 0;
-        //Starve = false;
-        Starve = 0;
+
         Fecund = false;
         Is_dead = false;
-        Mature = false;
         ecological_trait = 0;
         if (N_neutral) {
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
@@ -75,11 +72,11 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
-        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-        AssM = s_ass/pow(mating_trait, 2);
-
-        //determine maximum age of an individual
-        MaxAge = mxage;
+        if(mating_trait > 0){
+          AssM = s_ass/pow(mating_trait,2);
+        } else {
+          AssM = s_diss/pow(mating_trait,2);
+        }
 
         //Determine species identity//
         for (i = 0; i < Nr_Res - 1; ++i){
@@ -101,20 +98,18 @@ public:
     }
 
     //Old individuals no mut, 2 genotypes (assortative mating based on eco trait)//
-    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
+    Individual(double idnr, double age, double size, bool Mat, int Mating, double reprobuf, double mxage,  double starv,
       //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : IDNR(idnr), size(size), age(age),  Mature(Mat), Matings(Mating),repro_buffer(reprobuf),
+      : repro_buffer(reprobuf), size(size), IDNR(idnr),  Starve(starv), age(age),   Matings(Mating), Mature(Mat), MaxAge(mxage),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
-        //Starve = false;
-          Starve = 0;
+
         Fecund = false;
         Is_dead = false;
-        Mature = false;
         ecological_trait = 0;
         mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
         mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
@@ -127,11 +122,7 @@ public:
         } else {
           AssM = s_diss/pow(mating_trait,2);
         }
-        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-        //AssM = s_ass/pow(mating_trait,2);
 
-        //determine maximum age of an individual
-        MaxAge = mxage;
 
         //Determine species identity//
         for (i = 0; i < Nr_Res - 1; ++i){
@@ -152,27 +143,25 @@ public:
       }
 
     //Old individuals no mut, 1 genotype (clonal repro)//
-    Individual(double idnr, double age, double size,  int Mating, double reprobuf, double mxage, bool Mat,
+    Individual(double idnr, double age, double size, bool Mat,  int Mating, double reprobuf, double mxage,  double starv,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : IDNR(idnr), size(size), age(age),  Mature(Mat), Matings(Mating),repro_buffer(reprobuf),
-      ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
+      : repro_buffer(reprobuf), size(size), IDNR(idnr), Starve(starv),age(age),  Matings(Mating), Mature(Mat),
+        ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
-        repro_buffer = 0;
-        //Starve = false;
-          Starve = 0;
         Fecund = false;
         Is_dead = false;
-        Mature = false;
         ecological_trait = 0;
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
-        //strenght of assortative mating
-        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-        AssM = s_ass/pow(mating_trait,2);
-        //determine maximum age of an individual
-        MaxAge = mxage;
+        //strength of assortative mating
+        if(mating_trait > 0){
+          AssM = s_ass/pow(mating_trait,2);
+        } else {
+          AssM = s_diss/pow(mating_trait,2);
+        }
+
 
         //Determine species identity//
         for (i = 0; i < Nr_Res - 1; ++i){
@@ -182,7 +171,7 @@ public:
             break;
           }
         }
-        //These are correct//
+
 
         for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
           if(it_r->Tau>=2000){
@@ -209,8 +198,7 @@ public:
         Matings = 0;
         size = size_birth;
         repro_buffer = 0;
-        //Starve = false;
-          Starve = 0;
+        Starve = 0;
         Fecund = false;
         Is_dead = false;
         Mature = false;
@@ -224,8 +212,11 @@ public:
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
         //strength of assortative mating
-        //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-        AssM = s_ass/pow(mating_trait,2);
+        if(mating_trait > 0){
+          AssM = s_ass/pow(mating_trait,2);
+        } else {
+          AssM = s_diss/pow(mating_trait,2);
+        }
 
         //determine maximum age of an individual
         MaxAge = Surv_age(mt_rand);
@@ -265,17 +256,18 @@ public:
       Matings = 0;
       size = size_birth;
       repro_buffer = 0;
-      //Starve = false;
-        Starve = 0; 
+      Starve = 0;
       Fecund = false;
       Is_dead = false;
       Mature = false;
       IDNR = IDNR_Rand(mt_rand);
+      //mutate traits//
       if(mut == 1){
       this->Mate_mut();
       this->Eco_mut();
       this->Neutral_mut();
       }
+
       if (N_neutral) {
         neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
         neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
@@ -284,9 +276,12 @@ public:
       ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
       ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
-      //strenght of assortative mating
-      //AssM = -0.5 * pow((pow(mating_trait, 2)/s_ass), 2);
-      AssM = s_ass/pow(mating_trait,2);
+      //strength of assortative mating
+      if(mating_trait > 0){
+        AssM = s_ass/pow(mating_trait,2);
+      } else {
+        AssM = s_diss/pow(mating_trait,2);
+      }
 
       //determine maximum age of an individual
       MaxAge = Surv_age(mt_rand);
@@ -337,7 +332,6 @@ public:
 
   /*-------------------Sorting based on age ---------------------------------*/
   bool operator <(Individual const & IndividualObj)const;
-
 
 
   /*------------------Data members public---------------------------------------*/

@@ -29,7 +29,7 @@ stringstream ss;
 double MAX_EXP = 50;
 //When is something zero?
 double eps = pow(10,-9);
-double N_ini = 5; //initial number of individuals per sex & age group (total is 4*N_ini)
+double N_ini = 5; //initial number of individuals per age group (total is 4*N_ini)
 int Nr_Res = 7;
 
 double phi; //Ontogenetic shift
@@ -89,7 +89,7 @@ int i, j;
 double T_POP = 0; //For output
 double T_Time = 0; //For output
 double T_POP_FULL = 0; //for output
-double T_Mate = 0; //for output
+double T_Mate = 0; //for output of mate file
 
 //Vectors for time-settings and parameters
 std::vector<double> Setting(0);
@@ -133,8 +133,6 @@ return guess;
 }
 
 //Species identities///
-
-
 std::vector<double> SpeciesDiv;
 
 //Printing functions//
@@ -142,16 +140,16 @@ inline std::ostream& print_individual(std::ostream& os, const Individual& s){
   if(N_neutral && N_mating){
   os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
   << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t";
+      s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t" << s.Starve << "\t";
   }
   else if(N_mating){
      os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
-      <<  s.mating_trait << "\t" << s.ecological_trait << "\t" <<
-      s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t";
+      <<  s.mating_trait << "\t" << s.ecological_trait << "\t" << s.Mature << "\t" << s.Matings << "\t"
+      << s.repro_buffer << "\t" << s.MaxAge << "\t" << s.Starve << "\t";
 } else {
-  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
-  <<   s.ecological_trait << "\t" << s.Mature << "\t" <<
-     s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t" << s.Starve << "\t"; //REMOVE LATER
+    os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
+       << s.ecological_trait << "\t" << s.Mature << "\t"
+       << s.Matings << "\t" << s.repro_buffer << "\t" << s.MaxAge << "\t" << s.Starve << "\t";
   }
   for(i = 0; i < N_mating; ++i){
     os << s.mating_trait_alleles_f[i] << "\t";
@@ -175,18 +173,18 @@ inline std::ostream& print_individual(std::ostream& os, const Individual& s){
 }
 inline std::ostream& print_individualnames(std::ostream& os) {
   if(N_neutral && N_mating){
-  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "ID" << "\t"
-  << "m_trait" << "\t" << "n_trait" << "\t" << "eco_trait" << "\t" <<
-     "Mature" << "\t" <<
-       "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t";
+    os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "ID" << "\t"
+      << "m_trait" << "\t" << "n_trait" << "\t" << "eco_trait" << "\t"
+      << "Mature" << "\t" <<"Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t" << "Starve" << '\t';
   } else if (N_mating){
       os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "ID" << "\t"
-         << "m_trait" << "\t"  << "eco_trait" << "\t" <<  "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t";
+         << "m_trait" << "\t"  << "eco_trait" << "\t" <<  "Mature" << "\t" << "Matings" << "\t"
+         << "ReproBuffer" << "\t" << "MaxAge" << "\t" << "Starve" << '\t';
   }
-
   else {
-  os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "ID" << "\t"
-    <<  "eco_trait" << "\t" <<  "Mature" << "\t" <<"Matings" << "\t" << "ReproBuffer" << "\t" <<" MaxAge" << "\t" << "Starve" << '\t'; //REMOVE star
+    os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "ID" << "\t"
+      <<  "eco_trait" << "\t" <<  "Mature" << "\t" <<"Matings" << "\t" << "ReproBuffer"
+      << "\t" <<" MaxAge" << "\t" << "Starve" << '\t';
 }
   for(i = 0; i < N_mating; ++i){
     os << "m_A_f" << i << "\t";
@@ -210,19 +208,18 @@ inline std::ostream& print_individualnames(std::ostream& os) {
 }
 inline std::ostream& print_traitsindividual(std::ostream& os, const Individual& s){
   if(N_neutral && N_mating){
-  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
-  << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t" <<
-  s.Mature << "\t" <<
-      s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge;
+    os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
+      << s.mating_trait << "\t" << s.neutral_trait << "\t" << s.ecological_trait << "\t"
+      << s.Mature << "\t" << s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge << '\t' << s.Starve << '\t';
   } else if (N_mating) {
       os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
-      << s.mating_trait << "\t" << s.ecological_trait << "\t" << s.Mature << "\t" <<
-        s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge;
+        << s.mating_trait << "\t" << s.ecological_trait << "\t" << s.Mature << "\t" <<
+        s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge << '\t' << s.Starve << '\t';
   }
   else {
-  os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
-  << s.ecological_trait << "\t" << s.Mature << "\t" <<
-    s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge << '\t' << s.Starve; //REMOVE Starve
+    os << s.IDNR << '\t' << s.age << "\t" << s.size << "\t"  << s.SpeciesID << "\t"
+    << s.ecological_trait << "\t" << s.Mature << "\t"
+    << s.Matings << "\t" << s.repro_buffer << '\t' << s.MaxAge << '\t' << s.Starve; //REMOVE Starve
 }
   return os;
 }
@@ -230,11 +227,11 @@ inline std::ostream& print_traitsindividualnames(std::ostream& os){
   if(N_neutral && N_mating){
   os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "SpeciesID" << "\t"
    << "m_trait" << "\t" << "n_trait" << "\t"
-  << "eco_trait "<< "\t" << "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << std::endl;
+  << "eco_trait "<< "\t" << "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << "\t" << "MaxAge" << "\t" << "Starve" << std::endl;
   } else if (N_mating){
       os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "SpeciesID" << "\t"
       << "m_trait" << "\t"
-        << "eco_trait " << "\t" <<   "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << '\t' << "MaxAge" << std::endl;
+        << "eco_trait " << "\t" <<   "Mature" << "\t" << "Matings" << "\t" << "ReproBuffer" << '\t' << "MaxAge" << "\t" << "Starve" << std::endl;
   }
   else {
   os << "ID_NR" << '\t' << "age" << "\t" << "size" << "\t"  << "SpeciesID" << "\t"
@@ -323,8 +320,6 @@ void Init_Env() {
 
 
 /*------------------------Initialize the pop-------------*/
-//vector<int> mate_traits_f_ini;
-//vector<int> mate_traits_m_ini;
 vector<double> mate_traits_f_ini;
 vector<double> mate_traits_m_ini;
 vector<double> neutral_traits_f_ini;
@@ -332,24 +327,6 @@ vector<double> neutral_traits_m_ini;
 vector<double> ecological_traits_f_ini;
 vector<double> ecological_traits_m_ini;
 
-/*int p = 1;
-if(N_mating && (ini_mate != 0 && ini_mate != 1 && ini_mate != -1)){
-        std::cerr << "Initial average mating trait should be -1, 0, or 1" << std::endl;
-        exit(1);
-    }
-
-if(ini_mate == 0) {
-  for(i = 0; i < N_mating; ++i){
-  p *= -1;
-  mate_traits_f_ini.push_back(p);
-  mate_traits_m_ini.push_back(-p);
-}
-} else {
-  for(i = 0; i < N_mating; ++i){
-  mate_traits_f_ini.push_back(ini_mate);
-  mate_traits_m_ini.push_back(ini_mate);
-}
-}*/
 
 for(i = 0; i < N_mating; ++i){
   mate_traits_f_ini.push_back(ini_mate);
@@ -368,18 +345,17 @@ for(i = 0; i < N_eco; ++i){
 
 std::cout << "Add " << N_ini * 4 << " individuals to the init pop" << std::endl;
 for(int k = 0; k < N_ini; ++k){
+  //juveniles//
   unique_ptr<Individual> IndivPtr1(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
-
   unique_ptr<Individual> IndivPtr2(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
 
-
-  unique_ptr<Individual> IndivPtr3(new Individual(1, 0, 100,  0, 0, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  //adults (IDnr, age, size, mature, matings, reprodbuf, maxage, starve_nr)
+  unique_ptr<Individual> IndivPtr3(new Individual(1, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
-
-  unique_ptr<Individual> IndivPtr4(new Individual(2, 0, 100,  0, 0, Surv_age(mt_rand), 1, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr4(new Individual(2, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
   Juvvec.push_back(move(IndivPtr1));
