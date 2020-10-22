@@ -40,7 +40,7 @@ class Resource {
     It is possible to change the rmax value over time
     useful in case you want to do a bifurcation over the rmax value of a resource
     note that this is implemented as an INCREASE in the rmax value*/
-    double Delta_R = rho * ((this->Rmax + Rmaxch) - this->Density) - popIntake/this->Volume;
+    double Delta_R = rho * ((this->Rmax + Rmaxch) - this->Density)- popIntake/this->Volume;
     this->Density += Delta_R * delta_t;
     this->Density = std::max(0.0, this->Density);
     return *this;

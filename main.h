@@ -20,15 +20,18 @@
 #include <exception>
 #include <signal.h>
 #include <functional>
+#include <boost/numeric/odeint.hpp>
 
 
 using namespace std;
+using namespace boost::numeric::odeint;
 stringstream ss;
 
 //Max exponent value
 double MAX_EXP = 50;
 //When is something zero?
 double eps = pow(10,-9);
+double MaxDev = 0.05; //Is the maximum value of phi&psi to allow for integration
 double N_ini = 5; //initial number of individuals per sex & age group (total is 4*N_ini)
 int Nr_Res = 7;
 
@@ -392,4 +395,58 @@ for(int k = 0; k < N_ini; ++k){
 bool cmp_by_repro(const std::unique_ptr<Individual> &a, const std::unique_ptr<Individual> &b)
 {
     return a->repro_buffer > b->repro_buffer;
+}
+
+/*Numerical integrator function*/
+typedef std::vector< double > state_type;
+
+//for the integration//
+double JuvR;
+double SizeAtt;
+double Intake_JuvR;
+double NetGrowth_Juv;
+double Attack_SI;
+double MxAge; ///to decide integrate or not
+double AttackRB;
+double Feeding_Int; //Total feeding by small individuals.
+double IntTime_Size; //how long maximum integration
+double RDens; //density RB;
+int IntPop;
+int Repro_output;
+
+void rhs( const state_type &x , state_type &dxdt , const double /* t */)
+{
+  SizeAtt = Attack_SI * pow(x[0], qpow) * JuvR;
+  Intake_JuvR = SizeAtt * hpar * pow(x[0], npow) / (SizeAtt + hpar* pow(x[0], npow));
+  NetGrowth_Juv = alphapar * Intake_JuvR - kmet * pow(x[0], pmain);
+
+  dxdt[0] = NetGrowth_Juv;
+  dxdt[1] = Intake_JuvR;
+
+}
+/*double JuvIntake (double Resource, double attackconst, double MaxTime) {
+  JuvR = Resource;
+  Attack_SI = attackconst;
+  state_type x(2);
+  x[0] = 0.0005;
+  x[1] = 0.0;
+  integrate(rhs,
+           x , 0.0 , MaxTime , 0.1);
+  //cout << "It will reach a size of " << x[0] << " and eat " << x[1] << endl;
+  return (x[1]);
+}*/
+
+std::tuple <double, double> JuvIntake (double Resource, double attackconst, double MaxTime) {
+  JuvR = Resource;
+  Attack_SI = attackconst;
+  state_type x(2);
+  x[0] = 0.0005;
+  x[1] = 0.0;
+  runge_kutta4< state_type > stepper;
+  integrate_const( stepper , rhs , x , 0.0 , MaxTime , delta_t);
+  /*integrate(rhs,
+           x , 0.0 , MaxTime , 0.1);*/
+  //cout << "It will reach a size of " << x[0] << " and eat " << x[1] << endl;
+  //return (x[1]);
+  return std::tuple <double, double >(x[0], x[1]);
 }

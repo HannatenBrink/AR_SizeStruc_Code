@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
   "Tau1", "Tau2" , "Tau3" , "Tau4" , "Tau5" , "Tau6" ,
   "Amax" , "qpow" , "h" , "npow" , "alphapar" , "kmet" , "pmain" , "u" , "eta" , "epsilon" ,
   "mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "s_diss", "N_eco" , "N_neutral" , "N_mating" ,
-  "mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral"};
+  "mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral", "trysize"};
 
   int f = 0;
   while(getline(input, line))
@@ -137,6 +137,12 @@ int main(int argc, char* argv[]) {
       cout << "Error: Sexual reproduction is only possible in case N_mating > 0. Exit run..." << endl;
       exit(1);
     }
+  }
+
+  if((1 - 1/(1 + exp(-(trysize - m_shift))) < 1 - MaxDev) | (pow((1 + pow(trysize/M_Mat,-u_par)),-1) * pow((eta * trysize/M_Mat), (1-npow)) > MaxDev)) {
+    LogFile << "Max size of integration " << trysize << " is too big" << "\n";
+    std::cerr<<"Max size of integration " << trysize << " is too big" << "\n";
+    exit(1);
   }
   LogFile << endl << "________________________________________" << endl << endl;
 
@@ -303,6 +309,7 @@ int main(int argc, char* argv[]) {
                } else {
                  Juvvec.push_back(move(IndivPtr));
                }
+
           }
       }
       i += 1;
@@ -333,14 +340,15 @@ int main(int argc, char* argv[]) {
    "PopSize4" << '\t' << "PopMass4" << '\t' << "Adults4" << '\t' <<
    "PopSize5" << '\t' << "PopMass5" << '\t' << "Adults5" << '\t' <<
    "PopSize6" << '\t' << "PopMass6" << '\t' << "Adults6" << '\t' <<
-   "PopSize7" << '\t' << "PopMass7" << '\t' << "Adults7" << '\t';
+   "PopSize7" << '\t' << "PopMass7" << '\t' << "Adults7" << '\t' ;
   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Timefile, *it_r);
     Timefile << "\t";}
+  Timefile << "Rb_std" << '\t' << "Rb_larvae" << '\t';
   #ifdef TIMECHECK
   Timefile << "FeedingDur" << '\t' <<  "Remove_Death" << '\t' << "ReproductionDur";
   #endif
-  Timefile << endl;
+  Timefile << '\t' << "IntPop" <<'\t' << "Repro_output" << '\t' << "IntTime_Size" << endl;
 
   FullTraitfile << "Time" << "\t";
   print_individualnames(FullTraitfile);
@@ -432,7 +440,7 @@ LogFile << "___________________________________________" << endl;
         start = std::chrono::high_resolution_clock::now();
         #endif
         T_Time = 0;
-          Pop_Density = Advec.size() + Juvvec.size();
+          Pop_Density = Advec.size() + Juvvec.size() + IntPop;
           Pop_Mass = 0;
           Adults = 0;
 
@@ -620,7 +628,7 @@ LogFile << "___________________________________________" << endl;
     #endif
     Juvvec.erase(std::remove(begin(Juvvec), end(Juvvec), nullptr),
              end(Juvvec));
-             #ifdef TIMECHECK
+    #ifdef TIMECHECK
              stop = std::chrono::high_resolution_clock::now();
              duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
              LogFile << "Removing empty juv takes " << duration.count() << " microseconds" << endl;
@@ -628,13 +636,24 @@ LogFile << "___________________________________________" << endl;
                 ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
                 (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
              Timefile << duration.count() << '\t';}
-             #endif
+    #endif
 
 /*------------------------Growth of Resources-------------------------------------------*/
     #ifdef TIMECHECK
     start = std::chrono::high_resolution_clock::now();
     #endif
 
+
+
+    if ((Output_time > 0) && ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) || (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
+      Timefile << Feeding[0] << '\t' << Feeding_Int << '\t';
+    }
+    //cout << "Total feeding on RB is " << Feeding[0];
+    //add feeding by juveniles that are not in the pop
+    if(trysize > size_birth){
+    Feeding[0] += (Feeding_Int/delta_t);
+  }
+    //cout << " After taking the larvae into account " << Feeding[0] << endl;
     for(i = 0, it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r, ++i){
         //print_resourceName(cout, *it_r);
         //cout << endl << "Before eating the total density is: ";
@@ -693,6 +712,18 @@ LogFile << "___________________________________________" << endl;
     }
 
 /*------------------------Mating-------------------------------*/
+    IntPop = 0;
+    Repro_output = 0;
+
+    Feeding_Int = 0.0; //How much food do the newborns eat in their life
+    RDens = AllFood[0].Density;
+
+    //How long it takes the FASTEST individual to reach size trysize. Note that this expression is for P=N=0.75,q=0.8 only!
+    //The ecological trait is assumed to be ThetaB//
+    //In the calculation to determine the effect of an individual on the environment, the real eco trait of the individual is used//
+    //The calculation below is therefore a conservative estimate of the time until 'trysize', most individuals will be slower
+    IntTime_Size = -1.0/3.0*(60*alphapar*pow(hpar, 6)*pow(kmet, 4)*log(-hpar*kmet + pow(size_birth, 1.0/20.0)*(Amax*RDens*alphapar*hpar - Amax*RDens*kmet)) - 60*alphapar*pow(hpar, 6)*pow(kmet, 4)*log(-hpar*kmet + pow(trysize, 1.0/20.0)*(Amax*RDens*alphapar*hpar - Amax*RDens*kmet)) + 20*pow(size_birth, 3.0/20.0)*(pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 4)*pow(hpar, 6)*kmet - 3*pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 3)*pow(hpar, 5)*pow(kmet, 2) + 3*pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 2)*pow(hpar, 4)*pow(kmet, 3) - pow(Amax, 3)*pow(RDens, 3)*alphapar*pow(hpar, 3)*pow(kmet, 4)) + 60*pow(size_birth, 1.0/20.0)*(Amax*RDens*pow(alphapar, 2)*pow(hpar, 6)*pow(kmet, 3) - Amax*RDens*alphapar*pow(hpar, 5)*pow(kmet, 4)) + 30*pow(size_birth, 1.0/10.0)*(pow(Amax, 2)*pow(RDens, 2)*pow(alphapar, 3)*pow(hpar, 6)*pow(kmet, 2) - 2*pow(Amax, 2)*pow(RDens, 2)*pow(alphapar, 2)*pow(hpar, 5)*pow(kmet, 3) + pow(Amax, 2)*pow(RDens, 2)*alphapar*pow(hpar, 4)*pow(kmet, 4)) + 15*pow(size_birth, 1.0/5.0)*(pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 5)*pow(hpar, 6) - 4*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 4)*pow(hpar, 5)*kmet + 6*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 3)*pow(hpar, 4)*pow(kmet, 2) - 4*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 2)*pow(hpar, 3)*pow(kmet, 3) + pow(Amax, 4)*pow(RDens, 4)*alphapar*pow(hpar, 2)*pow(kmet, 4)) + 12*pow(size_birth, 1.0/4.0)*(pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 5)*pow(hpar, 5) - 5*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 4)*pow(hpar, 4)*kmet + 10*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 3)*pow(hpar, 3)*pow(kmet, 2) - 10*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 2)*pow(hpar, 2)*pow(kmet, 3) + 5*pow(Amax, 5)*pow(RDens, 5)*alphapar*hpar*pow(kmet, 4) - pow(Amax, 5)*pow(RDens, 5)*pow(kmet, 5)) - 20*pow(trysize, 3.0/20.0)*(pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 4)*pow(hpar, 6)*kmet - 3*pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 3)*pow(hpar, 5)*pow(kmet, 2) + 3*pow(Amax, 3)*pow(RDens, 3)*pow(alphapar, 2)*pow(hpar, 4)*pow(kmet, 3) - pow(Amax, 3)*pow(RDens, 3)*alphapar*pow(hpar, 3)*pow(kmet, 4)) - 60*pow(trysize, 1.0/20.0)*(Amax*RDens*pow(alphapar, 2)*pow(hpar, 6)*pow(kmet, 3) - Amax*RDens*alphapar*pow(hpar, 5)*pow(kmet, 4)) - 30*pow(trysize, 1.0/10.0)*(pow(Amax, 2)*pow(RDens, 2)*pow(alphapar, 3)*pow(hpar, 6)*pow(kmet, 2) - 2*pow(Amax, 2)*pow(RDens, 2)*pow(alphapar, 2)*pow(hpar, 5)*pow(kmet, 3) + pow(Amax, 2)*pow(RDens, 2)*alphapar*pow(hpar, 4)*pow(kmet, 4)) - 15*pow(trysize, 1.0/5.0)*(pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 5)*pow(hpar, 6) - 4*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 4)*pow(hpar, 5)*kmet + 6*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 3)*pow(hpar, 4)*pow(kmet, 2) - 4*pow(Amax, 4)*pow(RDens, 4)*pow(alphapar, 2)*pow(hpar, 3)*pow(kmet, 3) + pow(Amax, 4)*pow(RDens, 4)*alphapar*pow(hpar, 2)*pow(kmet, 4)) - 12*pow(trysize, 1.0/4.0)*(pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 5)*pow(hpar, 5) - 5*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 4)*pow(hpar, 4)*kmet + 10*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 3)*pow(hpar, 3)*pow(kmet, 2) - 10*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 2)*pow(hpar, 2)*pow(kmet, 3) + 5*pow(Amax, 5)*pow(RDens, 5)*alphapar*hpar*pow(kmet, 4) - pow(Amax, 5)*pow(RDens, 5)*pow(kmet, 5)))/(pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 6)*pow(hpar, 6) - 6*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 5)*pow(hpar, 5)*kmet + 15*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 4)*pow(hpar, 4)*pow(kmet, 2) - 20*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 3)*pow(hpar, 3)*pow(kmet, 3) + 15*pow(Amax, 5)*pow(RDens, 5)*pow(alphapar, 2)*pow(hpar, 2)*pow(kmet, 4) - 6*pow(Amax, 5)*pow(RDens, 5)*alphapar*hpar*pow(kmet, 5) + pow(Amax, 5)*pow(RDens, 5)*pow(kmet, 6));
+    //cout << "It takes " << IntTime_Size << " days to reach a size of " << trysize << ", with RB=" <<RDens<< ". Assuming that ecotrait = thetaB " << endl;
 
 
     if(!clonal){
@@ -802,9 +833,15 @@ LogFile << "___________________________________________" << endl;
       #endif
       for (auto&& it_f : Advec){
         if (it_f->Fecund) {
+          if(trysize > size_birth){
+          it_f->ClonalRepro_shortcut(RDens, Feeding_Int, IntTime_Size);
+        } else {
           it_f->ClonalRepro();
+        }
           it_f->Matings += 1;}
       }
+
+      //cout << "The total feeding of the newborns that wont be taken into account equals " << Feeding_Int << endl;
 
       #ifdef TIMECHECK
       stop = std::chrono::high_resolution_clock::now();
@@ -819,7 +856,7 @@ LogFile << "___________________________________________" << endl;
     if ((Output_time > 0) &&
        ((round(fmod(T_Time, (Output_time / delta_t))) <= 0) ||
        (round(fmod(T_Time, (Output_time / delta_t)) - (Output_time / delta_t))  == 0))) {
-        Timefile << endl;}
+        Timefile << '\t' << IntPop << '\t' << Repro_output  <<'\t' << IntTime_Size << endl;}
 
 
 /*------------------------Add juveniles to the pop------------------------------------*/

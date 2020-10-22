@@ -34,7 +34,7 @@ extern std::vector<double> Parameter;
 #define alphapar     Parameter[21]
 #define kmet         Parameter[22]
 #define pmain        Parameter[23]
-#define u            Parameter[24]
+#define u_par            Parameter[24]
 #define eta          Parameter[25]
 
 #define epsilonpar   Parameter[26]
@@ -62,6 +62,8 @@ extern std::vector<double> Parameter;
 #define ini_eco      Parameter[43]
 #define ini_mate     Parameter[44]
 #define ini_neutral  Parameter[45]
+
+#define trysize      Parameter[46]
 
 
 

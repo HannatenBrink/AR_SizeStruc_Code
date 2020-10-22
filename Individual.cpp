@@ -5,8 +5,9 @@
 void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double>& FeedVec) {
 
   phi = 1 - 1/(1 + exp(-(this->size - m_shift)));
+  //phi = 1;
   Intake.clear();
-  //Starve = false;
+  Starve = false;
   Fecund = false;
 
   for(i = 0, it_r = AllResource.begin(); it_r != AllResource.end(); ++it_r, ++i){
@@ -29,15 +30,18 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   std::transform (FeedVec.begin(), FeedVec.end(), Intake.begin(), FeedVec.begin(), std::plus<double>());
 
   this->NetProd = alphapar * IntakeTot - kmet * pow(this->size, pmain);
+
   //Growth and death//
   age += delta_t; //increase in age
   if(age >= MaxAge){ //Old and therefore dead
     this->Is_dead = 1;
   }
   else if(NetProd > 0) {  //growth
-    psi = pow((1 + pow(this->size/M_Mat,-u)),-1) * pow((eta * this->size/M_Mat), (1-npow));
+    psi = pow((1 + pow(this->size/M_Mat,-u_par)),-1) * pow((eta * this->size/M_Mat), (1-npow));
+    //psi = 0;
     this->size += (1 - psi) * this->NetProd * delta_t;
     this->repro_buffer += psi * this->NetProd * epsilonpar * pow(size_birth, -1) * 0.5 * delta_t;
+
     if(this->repro_buffer >= 1){
       Fecund = true;
       Mature = true;
@@ -172,6 +176,7 @@ void Individual::SexualRepro(Individual& male) {
 void Individual::ClonalRepro() {
   //decide upon number of offspring and clear the repro buffer//
   Offspring = std::trunc(this->repro_buffer/1);
+  Repro_output += Offspring;
   this->repro_buffer = std::fmod(this->repro_buffer, 1);
   this->Fecund = false;
   //for loop over number of offspring//
@@ -186,6 +191,80 @@ void Individual::ClonalRepro() {
 
   }
 }
+
+//Maybe, I have to change this one, such that all juveniles affect environment, and only the ones that become older than the age_size
+//move to the vector.
+void Individual::ClonalRepro_shortcut(double CurrentFood, double& JuvResIntake, double IntTime) {
+  //decide upon number of offspring and clear the repro buffer//
+  Offspring = std::trunc(this->repro_buffer/1);
+  Repro_output += Offspring;
+  this->repro_buffer = std::fmod(this->repro_buffer, 1);
+  this->Fecund = false;
+  //for loop over number of offspring//
+  for(int k = 0; k < Offspring; ++k){
+    MxAge = Surv_age(mt_rand); //How old does the offspring become?
+
+    if(MxAge > IntTime){ //If older than the time until a certain small size, just a normal individual
+      //create newborn, mutate alleles, and add to the population
+      std::unique_ptr<Individual> IndivPtr(new Individual(MxAge, this->mating_trait_alleles_f, this->mating_trait_alleles_m,
+        this->neutral_trait_alleles_f, this->neutral_trait_alleles_m,
+        this->ecological_trait_alleles_f , this->ecological_trait_alleles_m,
+        AllFood, 1));
+        Juvvec.push_back(move(IndivPtr));
+      } else {  //Otherwise, do the shortcut
+        IntPop += 1;
+        //std::cout << "Newborn will become " << MxAge << " days old. ";
+        if(TauB>=2000){
+          AttackRB = Amax;
+        } else {
+          AttackRB = (Amax * exp(-pow(this->ecological_trait-ThetaB,2)/(2*TauB*TauB)));
+        }
+        auto [newsize, intake] = JuvIntake(CurrentFood, AttackRB, IntTime);
+        JuvResIntake += intake;
+      }
+
+    }
+  }
+
+/*void Individual::ClonalRepro_shortcut(double CurrentFood, double& JuvResIntake, double IntTime) {
+    //decide upon number of offspring and clear the repro buffer//
+    Offspring = std::trunc(this->repro_buffer/1);
+    Repro_output += Offspring;
+    this->repro_buffer = std::fmod(this->repro_buffer, 1);
+    this->Fecund = false;
+    //for loop over number of offspring//
+    for(int k = 0; k < Offspring; ++k){
+      MxAge = Surv_age(mt_rand); //How old does the offspring become?
+      //MxAge = 1000;
+      if(TauB>=2000){
+        AttackRB = Amax;
+      } else {
+        AttackRB = (Amax * exp(-pow(this->ecological_trait-ThetaB,2)/(2*TauB*TauB)));
+      }
+
+      if(MxAge > IntTime){
+        auto [newsize, intake] = JuvIntake(CurrentFood, AttackRB, IntTime);
+        JuvResIntake += intake;
+        std::unique_ptr<Individual> IndivPtr(new Individual(MxAge, IntTime, newsize,
+          this->mating_trait_alleles_f, this->mating_trait_alleles_m,
+          this->neutral_trait_alleles_f, this->neutral_trait_alleles_m,
+          this->ecological_trait_alleles_f , this->ecological_trait_alleles_m,
+          AllFood, 1));
+          Juvvec.push_back(move(IndivPtr));
+        //  std::cout << "The individual enters the pop at age " << IntTime << " and size " << newsize;
+          //std::cout << " It ate " << intake << std::endl;
+      } else {
+        auto [newsize, intake] = JuvIntake(CurrentFood, AttackRB, MxAge);
+        JuvResIntake += intake;
+        IntPop += 1;
+        //std::cout << "The individual enters the pop at age " << IntTime << " and size " << newsize;
+        //std::cout << " It ate " << intake << std::endl;
+      }
+      }
+    }*/
+
+
+
 
 /*---------------------------------------Mutate---------------------------------------*/
 /*inline void Individual::Mate_mut_diallic(){
@@ -226,12 +305,12 @@ inline void Individual::Mate_mut(){
 
 inline void Individual::Neutral_mut(){
   for(int_doub = this->neutral_trait_alleles_f.begin(); int_doub != this->neutral_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
       *int_doub += MutNorm(mt_rand);
     }
   }
   for(int_doub = this->neutral_trait_alleles_m.begin(); int_doub != this->neutral_trait_alleles_m.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_di) {
       *int_doub += MutNorm(mt_rand);
     }
   }
