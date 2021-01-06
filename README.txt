@@ -15,7 +15,7 @@ The IBM creates a minimum of 2 output files, one file with the population & reso
 
 The file with the state of the population (.ESF) has the same structure as the .isf file, with the first line of the file containing the environmental values, and the rest of the file containing the information of the population. These .esf files can be used for a new run.
 
-A stepsize of 1 seems to a good choice for the default parameters (results comparable to smaller stepsize & fast).
+Stepsize is super important! Too big and you'll get strange dynamics. It depends on model parameters which stepsize works. A stepsize of 0.01 works well but for some parameters 1 works (which speeds up calculations considerably)
   
 
 

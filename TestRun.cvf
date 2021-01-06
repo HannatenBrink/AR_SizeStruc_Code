@@ -1,4 +1,4 @@
-"Maximum integration time"	100
+"Maximum integration time"	100000
 "Write to time file"		100
 "Write full pop"		10000
 "Write trait pop"		0

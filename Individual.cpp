@@ -8,6 +8,17 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   Intake.clear();
   Fecund = false;
 
+  /*it_r = AllResource.begin();
+  Value = phi * this->attack_constants[0] * pow(this->size, qpow) * it_r->Density;
+  Total = Value;
+  Intake.push_back(Value);
+
+  for(i=1, it_r = AllResource.begin()+1; it_r != AllResource.end(); ++it_r, ++i){
+    Value = (1 - phi) * this->attack_constants[i] * pow(this->size, qpow) * it_r->Density;
+    Total += Value;
+    Intake.push_back(Value);
+  }*/
+
   for(i = 0, it_r = AllResource.begin(); it_r != AllResource.end(); ++it_r, ++i){
     if(i > 0){
     Value = (1 - phi) * this->attack_constants[i] * pow(this->size, qpow) * it_r->Density;
@@ -33,6 +44,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
   age += delta_t; //increase in age
   if(age >= MaxAge){ //Old and therefore dead
     this->Is_dead = 1;
+    //std::cout << "With an age of " << age <<  " and a maxage of " << MaxAge << " the individual is too old " << std::endl;
   }
   else if(NetProd > 0) {  //growth
     psi = pow((1 + pow(this->size/M_Mat,-u)),-1) * pow((eta * this->size/M_Mat), (1-npow));
@@ -47,6 +59,7 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
     TotStarv += 1;
     if (- this->NetProd / (Xi * this->size) * delta_t > unif(mt_rand)){
         this->Is_dead = 1;
+        //std::cout << "with a net loss of " << this->NetProd << " probability to die is " << - this->NetProd / (Xi * this->size) * delta_t << std::endl;
   }
 }
 
@@ -240,12 +253,12 @@ inline void Individual::Eco_mut() {
   for(int_doub = ecological_trait_alleles_f.begin(); int_doub != ecological_trait_alleles_f.end(); ++int_doub) {
     if(unif(mt_rand) < mut_rate) {
       *int_doub += MutNorm(mt_rand);
-      *int_doub = abs(*int_doub);
+      //*int_doub = abs(*int_doub); //This is not necessary I think?
     }}
     for(int_doub = this->ecological_trait_alleles_m.begin(); int_doub != this->ecological_trait_alleles_m.end(); ++int_doub) {
       if(unif(mt_rand) < mut_rate) {
         *int_doub += MutNorm(mt_rand);
-        *int_doub = abs(*int_doub);
+        //*int_doub = abs(*int_doub);
       }}
     }
 

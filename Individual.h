@@ -66,11 +66,15 @@ public:
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
 
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
+        matingProb = 0;
+        NetProd = 0;
         //strength of assortative mating
         if(mating_trait > 0){
           AssM = s_ass/pow(mating_trait,2);
@@ -111,11 +115,15 @@ public:
         Fecund = false;
         Is_dead = false;
         ecological_trait = 0;
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
-
+        neutral_trait = 0;
+        matingProb = 0;
+        NetProd = 0;
         //strength of assortative mating
         if(mating_trait > 0){
           AssM = s_ass/pow(mating_trait,2);
@@ -142,11 +150,22 @@ public:
           }}
       }
 
+
+/*
+
+
+std::vector<double> mating_trait_alleles_f;
+std::vector<double> mating_trait_alleles_m;
+std::vector<double> neutral_trait_alleles_f;
+std::vector<double> neutral_trait_alleles_m;
+
+*/
+
     //Old individuals no mut, 1 genotype (clonal repro)//
     Individual(double idnr, double age, double size, bool Mat,  int Mating, double reprobuf, double mxage,  double starv,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
       std::vector<Resource>& AllFood)
-      : repro_buffer(reprobuf), size(size), IDNR(idnr), Starve(starv),age(age),  Matings(Mating), Mature(Mat),
+      : repro_buffer(reprobuf), size(size), IDNR(idnr), Starve(starv),age(age),  Matings(Mating), Mature(Mat), MaxAge(mxage),
         ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
         Fecund = false;
@@ -154,14 +173,23 @@ public:
         ecological_trait = 0;
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
+        mating_trait = 0;
+        AssM = 0;
+        neutral_trait = 0;
+        matingProb = 0;
+        NetProd = 0;
+        SpeciesID = 1;
 
-        //strength of assortative mating
-        if(mating_trait > 0){
-          AssM = s_ass/pow(mating_trait,2);
-        } else {
-          AssM = s_diss/pow(mating_trait,2);
+
+        for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
+          if(it_r->Tau>=2000){
+            attack_constants.push_back(Amax);
+            Intake.push_back(0);
+          } else {
+          attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
+          Intake.push_back(0);
+         }
         }
-
 
         //Determine species identity//
         for (i = 0; i < Nr_Res - 1; ++i){
@@ -172,14 +200,6 @@ public:
           }
         }
 
-
-        for(it_r = AllFood.begin(); it_r < AllFood.end(); ++it_r) {
-          if(it_r->Tau>=2000){
-            attack_constants.push_back(Amax);
-          } else {
-          attack_constants.push_back(Amax * exp(-pow(ecological_trait-it_r->OptTrait,2)/(2*it_r->Tau*it_r->Tau)));
-         }
-        }
       }
 
 
@@ -206,11 +226,15 @@ public:
         if (N_neutral) {
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-        ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
+          //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+          //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+          mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+          mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+            ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
+        matingProb = 0;
+        NetProd = 0;
         //strength of assortative mating
         if(mating_trait > 0){
           AssM = s_ass/pow(mating_trait,2);
@@ -271,11 +295,15 @@ public:
       if (N_neutral) {
         neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
         neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
-      mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-      mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-      ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
+        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+        ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
       ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
+      matingProb = 0;
+      NetProd = 0;
       //strength of assortative mating
       if(mating_trait > 0){
         AssM = s_ass/pow(mating_trait,2);
@@ -349,7 +377,7 @@ public:
   double age;
   double ecological_trait;
   double neutral_trait;
-  double Matings;
+  int Matings;
   bool Mature;
   double MaxAge;
   double AssM;

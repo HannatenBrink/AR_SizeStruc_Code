@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#BSUB -J "dipspades"
+#BSUB -W 120:00
+#BSUB -n 6
+#BSUB -R "rusage[mem=10000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[scratch=10000]"
+
+module load gcc/4.8.2 gdc python/2.7.11 spades/3.10.0
+
+OMP_NUM_THREADS=6
+
+# Save original location
+CWD=$PWD
+
+# Copy files to local scratch
+rsync -rLptgoD ./ ${TMPDIR}
+
+# Run commands
+echo $TMPDIR >> this.is.my.tempdir
+cd $TMPDIR
+dipspades.py -t 6 --pe1-1 BJ0812_newtrim1.fastq  --pe1-2 BJ0812_newtrim2.fastq  \
+                  --pe2-1 BJ0885_newtrim1.fastq  --pe2-2 BJ0885_newtrim2.fastq  \
+                  --pe3-1 BJ8161_newtrim1.fastq  --pe3-2 BJ8161_newtrim2.fastq  \
+                  --pe4-1 BJ8091_newtrim1.fastq  --pe4-2 BJ8091_newtrim2.fastq  \
+                  --pacbio long_all.filtered.pacbio.reads.fasta -m 60 --careful  -o outdir >dipspades.log 2>dipspad$
+
+# Copy new and changed files back
+rsync -auq ${TMPDIR}/ $CWD

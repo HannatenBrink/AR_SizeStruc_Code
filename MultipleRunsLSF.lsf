@@ -1,0 +1,61 @@
+#!/bin/bash
+
+RUNLIST=IBMTest_runlist2                                #Name of the file where the names of the .cvf/isf files are stored
+PROGNAME=RunIBM						#Name of the program	
+NR=2
+
+
+#BSUB -J "IBMRuns2[1-2]%24"                         	#Name of the job, where I ensure max 24 jobs are run simultaneously. 
+#BSUB -n 1                                      	#Requesting 1 core per job
+#BSUB -W 0:05                                   	#Requesting 5 min running time
+#BSUB -N -B -u  hanna.tenbrink@eawag.ch                 #Send email at beginning and end of a job
+#BSUB -oo  RUN_%I.out                  
+#BSUB -e   RUN_%I.err
+#BSUB -R   "rusage[scratch=100]"                        #Amount of memory necessary on the scratch [not yet optimized]
+
+COPYING=0
+CLEANING=0
+
+variable=$LSB_JOBINDEX
+input=$(awk -v jindex=$variable 'NR==jindex' $RUNLIST)
+CWD=$PWD
+
+
+function cleanup() {
+        if [[ $CLEANING -eq 0 ]]; then
+            echo "Clean everything"
+            CLEANING=1
+	    cd ${CWD}
+            rm -fr ${TMPDIR}
+        fi
+	exit ${EV}
+
+}
+
+
+function copyback() {
+        if [[ $COPYING -eq 0 ]]; then
+                COPYING=1
+                echo "Tar everything"
+                tar cfz $input.tgz ${input}*
+                scp $input.tgz $CWD
+                echo "done with tar"
+        fi
+}
+
+scp $PROGNAME ${TMPDIR}
+scp $input*  ${TMPDIR}
+cd $TMPDIR
+
+EV=0
+
+trap 'copyback; cleanup' SIGUSR2 SIGINT SIGTERM
+
+eval ./RunIBM $input
+
+EV=$?
+
+copyback
+
+
+

@@ -30,8 +30,9 @@ double MAX_EXP = 50;
 //When is something zero?
 double eps = pow(10,-9);
 double N_ini = 5; //initial number of individuals per age group (total is 4*N_ini)
-int Nr_Res = 7;
+int Nr_Res = 6;
 
+double Time;
 double phi; //Ontogenetic shift
 double psi;
 double Total;
@@ -91,6 +92,13 @@ double T_Time = 0; //For output
 double T_POP_FULL = 0; //for output
 double T_Mate = 0; //for output of mate file
 
+ofstream LogFile;
+ofstream Matefile;
+ofstream Timefile;
+ofstream Endfile;
+ofstream Traitfile;
+ofstream FullTraitfile;
+
 //Vectors for time-settings and parameters
 std::vector<double> Setting(0);
 std::vector<double> Parameter(0);
@@ -101,6 +109,7 @@ vector<unique_ptr<Individual>> Juvvec;
 vector<Resource> AllFood;
 
 
+
 //Function to split a line. Needed to read the cvf file
 void split(const std::string &s, char delim, std::vector<std::string> &elems){
     stringstream ss;
@@ -109,6 +118,7 @@ void split(const std::string &s, char delim, std::vector<std::string> &elems){
     while (getline(ss, item, delim)) {
         elems.push_back(item);}
   }
+
 
 //Function to get a random number from a vector of cumulative probabilities//
 inline int weighted_random_known_sums_floats(std::vector<double> &cumulative_rates, double &r, int num_elements) {
@@ -290,6 +300,57 @@ void sig_to_exception(int s)
 {
   throw InterruptException(s);
 }
+
+/*--------------Function to close program when receiving a signal------------------*/
+
+void signalHandler( int signum ){
+   cout << "Interrupt signal (" << signum << ") received.\n";
+   cout << "Stop IBMrun and write output to the .esf file" << endl;
+
+   Endfile << "Time" << "\t" << "Volume" << "\t";
+   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
+     print_resourceName(Endfile, *it_r);
+     Endfile << "\t";
+   }
+   Endfile << endl;
+
+   Endfile << Time * delta_t << "\t" << volume << "\t";
+   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
+     print_resourceDensity(Endfile, *it_r);
+     Endfile << "\t";
+   }
+   Endfile << endl << endl;
+
+   print_individualnames(Endfile);
+   Endfile << endl;
+   if(Advec.size() > 0){for (auto&& it_f = Advec.begin(); it_f != Advec.end(); ++it_f){
+     print_individual(Endfile, **it_f);
+     Endfile << endl;
+   }}
+
+   if(Juvvec.size() > 0){
+   for (auto&& it_f = Juvvec.begin(); it_f != Juvvec.end(); ++it_f){
+     print_individual(Endfile, **it_f);
+     Endfile << endl;
+   }}
+
+
+
+   LogFile << "\nSimulation ended at time " << Time * delta_t - delta_t << endl;
+   cout << "Simulation ended at time " << Time * delta_t - delta_t << endl;
+
+ //close files
+     Endfile.close();
+     Traitfile.close();
+     FullTraitfile.close();
+     Timefile.close();
+     LogFile.close();
+     Matefile.close();
+   exit(signum);
+}
+
+
+
 
 /*-----Init the env and pop in absence of isf file----------*/
 

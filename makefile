@@ -1,5 +1,5 @@
 C=g++
-CFLAGS= -std=c++17 -Wall -O3 
+CFLAGS= -std=c++11 -march=native -Wall -O3 
 
 all: RunIBM
 
