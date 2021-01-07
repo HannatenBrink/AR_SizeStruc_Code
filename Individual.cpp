@@ -3,8 +3,16 @@
 
 /*---------------------------------------Resource intake and growth---------------------------------------*/
 void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double>& FeedVec) {
-
+  if(discrete_shift==1){
+    if (this->size <= m_shift)
+    phi = 1;
+    else {
+      phi = 0;
+    }
+  }
+  else {
   phi = 1 - 1/(1 + exp(-(this->size - m_shift)));
+    }
   Intake.clear();
   Fecund = false;
 
@@ -71,6 +79,10 @@ void Individual::R_Intake(std::vector<Resource>& AllResource, std::vector<double
 //Following Doebeli & Dieckmann//
 //where parameter s_ass/s_diss is the importance of assortative mating//
 //AM depends on either a neutral trait or the ecological trait//
+//I think it is fine like this, but it might be prone to weird matings in case of biased sex ratio/
+//In that case, make the minimum mating prob bigger, and track how often a female can't find a mate//
+//if it gets a lot, let it mate with a male that is less good//
+//not sure if this will happen because of the sorting//
 Individual& Individual::MateProb(const Individual& female, std::vector<double> &vec, double &total){
       if(this->Fecund)  {
       if (female.mating_trait != 0){
@@ -215,7 +227,7 @@ void Individual::ClonalRepro() {
 
 inline void Individual::Mate_mut(){
   for(int_doub = this->mating_trait_alleles_f.begin(); int_doub != this->mating_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate_di) {
+    if(unif(mt_rand) < mut_rate_mate) {
       *int_doub += MutNorm(mt_rand);
       if(*int_doub > 1){
         *int_doub = 1;
@@ -225,7 +237,7 @@ inline void Individual::Mate_mut(){
     }
   }
   for(int_doub = this->mating_trait_alleles_m.begin(); int_doub != this->mating_trait_alleles_m.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate_di) {
+    if(unif(mt_rand) < mut_rate_mate) {
     *int_doub += MutNorm(mt_rand);
     if(*int_doub > 1){
       *int_doub = 1;
@@ -238,12 +250,12 @@ inline void Individual::Mate_mut(){
 
 inline void Individual::Neutral_mut(){
   for(int_doub = this->neutral_trait_alleles_f.begin(); int_doub != this->neutral_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate_di) {
+    if(unif(mt_rand) < mut_rate_neut) {
       *int_doub += MutNorm(mt_rand);
     }
   }
   for(int_doub = this->neutral_trait_alleles_m.begin(); int_doub != this->neutral_trait_alleles_m.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate_di) {
+    if(unif(mt_rand) < mut_rate_neut) {
       *int_doub += MutNorm(mt_rand);
     }
   }
@@ -251,12 +263,12 @@ inline void Individual::Neutral_mut(){
 
 inline void Individual::Eco_mut() {
   for(int_doub = ecological_trait_alleles_f.begin(); int_doub != ecological_trait_alleles_f.end(); ++int_doub) {
-    if(unif(mt_rand) < mut_rate) {
+    if(unif(mt_rand) < mut_rate_eco) {
       *int_doub += MutNorm(mt_rand);
       //*int_doub = abs(*int_doub); //This is not necessary I think?
     }}
     for(int_doub = this->ecological_trait_alleles_m.begin(); int_doub != this->ecological_trait_alleles_m.end(); ++int_doub) {
-      if(unif(mt_rand) < mut_rate) {
+      if(unif(mt_rand) < mut_rate_eco) {
         *int_doub += MutNorm(mt_rand);
         //*int_doub = abs(*int_doub);
       }}

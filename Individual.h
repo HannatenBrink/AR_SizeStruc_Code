@@ -53,7 +53,7 @@ public:
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
     std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
     std::vector<Resource>& AllFood)
-      : repro_buffer(reprobuf), size(size),  IDNR(idnr), Starve(starv), age(age),  Matings(Mating),  Mature(Mat),MaxAge(mxage),sex(sex), 
+      : repro_buffer(reprobuf), size(size),  IDNR(idnr), Starve(starv), age(age),  Matings(Mating),  Mature(Mat),MaxAge(mxage),sex(sex),
       mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
@@ -66,10 +66,9 @@ public:
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
 
-        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
@@ -83,10 +82,10 @@ public:
         }
 
         //Determine species identity//
-        for (i = 0; i < Nr_Res - 1; ++i){
+        for (i = 0; i < Nr_Res; ++i){
           SpeciesID = 1;
           if (ecological_trait >= SpeciesDiv[i]){
-            SpeciesID = Nr_Res - i;
+            SpeciesID = Nr_Res - i + 1;
             break;
           }
         }
@@ -115,10 +114,10 @@ public:
         Fecund = false;
         Is_dead = false;
         ecological_trait = 0;
-        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
         neutral_trait = 0;
@@ -133,10 +132,10 @@ public:
 
 
         //Determine species identity//
-        for (i = 0; i < Nr_Res - 1; ++i){
+        for (i = 0; i < Nr_Res; ++i){
           SpeciesID = 1;
           if (ecological_trait >= SpeciesDiv[i]){
-            SpeciesID = Nr_Res - i;
+            SpeciesID = Nr_Res - i + 1;
             break;
           }
         }
@@ -183,10 +182,10 @@ public:
         }
 
         //Determine species identity//
-        for (i = 0; i < Nr_Res - 1; ++i){
+        for (i = 0; i < Nr_Res; ++i){
           SpeciesID = 1;
           if (ecological_trait >= SpeciesDiv[i]){
-            SpeciesID = Nr_Res - i;
+            SpeciesID = Nr_Res - i + 1;
             break;
           }
         }
@@ -213,15 +212,15 @@ public:
         Fecund = false;
         Is_dead = false;
         Mature = false;
-        if(unif(mt_rand) > 0.5) {sex = 1;} else {sex = 0;}
+        sex = 2;
         IDNR = IDNR_Rand(mt_rand);
         if (N_neutral) {
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
-          //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-          //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-          mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
-          mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+          mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+          mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+          //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+          //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
             ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
         ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
@@ -238,10 +237,10 @@ public:
         MaxAge = Surv_age(mt_rand);
 
         //Determine species identity//
-        for (i = 0; i < Nr_Res - 1; ++i){
+        for (i = 0; i < Nr_Res; ++i){
           SpeciesID = 1;
           if (ecological_trait >= SpeciesDiv[i]){
-            SpeciesID = Nr_Res - i;
+            SpeciesID = Nr_Res - i + 1;
             break;
           }
         }
@@ -276,7 +275,7 @@ public:
       Fecund = false;
       Is_dead = false;
       Mature = false;
-      if(unif(mt_rand) > 0.5) {sex = 1;} else {sex = 0;}
+      sex = 2;
       IDNR = IDNR_Rand(mt_rand);
       //mutate traits//
       if(mut == 1){
@@ -288,10 +287,10 @@ public:
       if (N_neutral) {
         neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
         neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
-        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
-        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
-        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
-        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
+        mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f)/(2*N_mating);
+        mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f)/(2*N_mating);
+        //mating_trait = std::accumulate(mating_trait_alleles_f.begin(), mating_trait_alleles_f.end(), 0.0f);
+        //mating_trait += std::accumulate(mating_trait_alleles_m.begin(), mating_trait_alleles_m.end(), 0.0f);
         ecological_trait = std::accumulate(ecological_trait_alleles_f.begin(), ecological_trait_alleles_f.end(), 0.0f);
       ecological_trait += std::accumulate(ecological_trait_alleles_m.begin(), ecological_trait_alleles_m.end(), 0.0f);
 
@@ -308,10 +307,10 @@ public:
       MaxAge = Surv_age(mt_rand);
 
       //Determine species identity//
-      for (i = 0; i < Nr_Res - 1; ++i){
+      for (i = 0; i < Nr_Res; ++i){
         SpeciesID = 1;
         if (ecological_trait >= SpeciesDiv[i]){
-          SpeciesID = Nr_Res - i;
+          SpeciesID = Nr_Res - i + 1;
           break;
         }
       }

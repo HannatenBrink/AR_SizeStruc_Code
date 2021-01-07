@@ -51,25 +51,27 @@ extern std::vector<double> Parameter;
 #define N_neutral    Parameter[35] //If this one is zero, ecological character determines assortative mating. Otherwise the neutral trait
 #define N_mating     Parameter[36]
 #define mut_std      Parameter[37]
-#define mut_rate     Parameter[38]
-#define mut_rate_di  Parameter[39]
+#define mut_rate_eco Parameter[38]
+#define mut_rate_mate Parameter[39]
+#define mut_rate_neut Parameter[40]
 
-#define delta_t      Parameter[40]
-#define volume       Parameter[41]
+#define delta_t      Parameter[41]
+#define volume       Parameter[42]
 
-#define clonal       Parameter[42]
+#define clonal       Parameter[43]
 
-#define ini_eco      Parameter[43]
-#define ini_mate     Parameter[44]
-#define ini_neutral  Parameter[45]
+#define ini_eco      Parameter[44]
+#define ini_mate     Parameter[45]
+#define ini_neutral  Parameter[46]
+
+#define discrete_shift  Parameter[47] //what type of shift
 
 
 
 /*------------All settings definitions-----------------------*/
 #define Max_time        Setting[0]      //Maximum timesteps
 #define Output_time     Setting[1]      //How often write to timefile
-#define Pop_Output      Setting[2]      //How often write a full pop file
-#define Pop_TraitOutput Setting[3]      //How often write traits only
-#define MateFile        Setting[4]      //How often write to matefile
+#define Pop_Output      Setting[2]      //How often write traits only
+#define MateFile        Setting[3]      //How often write to matefile
 
 #endif

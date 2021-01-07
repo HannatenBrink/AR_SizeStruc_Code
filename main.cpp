@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
   "Tau1", "Tau2" , "Tau3" , "Tau4" , "Tau5" , "Tau6" ,
   "Amax" , "qpow" , "h" , "npow" , "alphapar" , "kmet" , "pmain" , "u" , "eta" , "epsilon" ,
   "mu_b" , "Xi" , "M_B" , "M_Mat" , "M_Shift" , "s_ass" , "s_diss", "N_eco" , "N_neutral" , "N_mating" ,
-  "mut_std" , "Mut_rate" , "Mut_rate_dialic" , "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral"};
+  "mut_std" , "Mut_rate_eco" , "Mut_rate_mate" , "Mut_rate_neut", "delta_t" , "volume" , "clonal" , "ini_eco" , "ini_mate" , "ini_neutral", "discrete_shift"};
 
   int f = 0;
   while(getline(input, line))
@@ -118,10 +118,6 @@ int main(int argc, char* argv[]) {
   Timefile.open(ss.str());
   ss.str("");
 
-  //File containing all individuals and their phenotypes in the population//
-  ss<<Filename<<"_traits"<<".txt";
-  Traitfile.open(ss.str());
-  ss.str("");
 
   //File containing all individuals and their genotypes&phenotypes in the population//
   ss<<Filename<<"_alltraits"<<".txt";
@@ -129,7 +125,6 @@ int main(int argc, char* argv[]) {
   ss.str("");
 
   //Population at the end of run//
-
   ss<<Filename<<".esf";
   Endfile.open(ss.str());
   ss.str("");
@@ -145,11 +140,13 @@ int main(int argc, char* argv[]) {
    double Starttime_init = 0;
    vector<double> Feeding;    //Feeding by consumers
    Time = 0; //The time
-   double b1 = (Theta1 + Theta2) / 2;
-   double b2 = (Theta2 + Theta3) / 2;
-   double b3 = (Theta3 + Theta4) / 2;
-   double b4 = (Theta4 + Theta5) / 2;
-   double b5 = (Theta5 + Theta6) / 2;
+   double b1 = (ThetaB + Theta1) / 2;
+   double b2 = (Theta1 + Theta2) / 2;
+   double b3 = (Theta2 + Theta3) / 2;
+   double b4 = (Theta3 + Theta4) / 2;
+   double b5 = (Theta4 + Theta5) / 2;
+   double b6 = (Theta5 + Theta6) / 2;
+   SpeciesDiv.push_back(b6);
    SpeciesDiv.push_back(b5);
    SpeciesDiv.push_back(b4);
    SpeciesDiv.push_back(b3);
@@ -178,7 +175,7 @@ int main(int argc, char* argv[]) {
     double dummy,  idnr,reprobuf;
     int id, Mature, Matings,  nrStarve;
     int i = 0, z = 0;
-    int MinItems = 9 + 2 * N_neutral + 2 * N_mating + 2 * N_eco;
+    int MinItems = 10 + 2 * N_neutral + 2 * N_mating + 2 * N_eco;
     if(N_mating > 0) {
       MinItems += 1;
     }
@@ -308,7 +305,7 @@ int main(int argc, char* argv[]) {
           }
          }
         else { //id
-           linestream >> idnr >> age_init >> size_init >>  id >>
+           linestream >> idnr >> sex_init >> age_init >> size_init >>  id >>
                eco_trait_init >> Mature >> Matings >> reprobuf >> MaxAge_init >> nrStarve;
            for(int j = 0; j < N_eco; ++j) {
                    linestream >> dummy;
@@ -319,7 +316,7 @@ int main(int argc, char* argv[]) {
                    eco_m.push_back(dummy);
                }
                //cout << "Individual info " << i << '\t' << idnr << '\t' << age_init << '\t' << size_init << '\t' << Mature << '\t' << Matings << '\t' << reprobuf << '\t' << MaxAge_init << '\t' << nrStarve << '\t' << eco_f[0] << '\t' << eco_m[0] << endl;
-               unique_ptr<Individual> IndivPtr(new Individual(idnr, 1, age_init, size_init, Mature, Matings, reprobuf, MaxAge_init, nrStarve, eco_f, eco_m,   AllFood));
+               unique_ptr<Individual> IndivPtr(new Individual(idnr, sex_init, age_init, size_init, Mature, Matings, reprobuf, MaxAge_init, nrStarve, eco_f, eco_m,   AllFood));
                if(Mature) {
                  Femalevec.push_back(move(IndivPtr));
                } else {
@@ -347,14 +344,14 @@ int main(int argc, char* argv[]) {
   LogFile << "Add names of variables to the files, and initialize variables..." << endl;
 
   Timefile << "Time" << '\t' << "Starve" << '\t' << "OverCons" << '\t' <<
-   "PopSize" << '\t' << "PopMass" << '\t' << "Females" << '\t' << "Males" << '\t' <<
+   "PopSize" << '\t' << "PopMass"   << '\t' << "Females"  << '\t' << "Males" << '\t' <<
    "PopSize1" << '\t' << "PopMass1" << '\t' << "Females1" << '\t' << "Males1" << '\t' <<
    "PopSize2" << '\t' << "PopMass2" << '\t' << "Females2" << '\t' << "Males2" << '\t' <<
    "PopSize3" << '\t' << "PopMass3" << '\t' << "Females3" << '\t' << "Males3" << '\t' <<
    "PopSize4" << '\t' << "PopMass4" << '\t' << "Females4" << '\t' << "Males4" << '\t' <<
    "PopSize5" << '\t' << "PopMass5" << '\t' << "Females5" << '\t' << "Males5" << '\t' <<
    "PopSize6" << '\t' << "PopMass6" << '\t' << "Females6" << '\t' << "Males6" << '\t' <<
-   "PopSize7" << '\t' << "PopMass7" << '\t' << "Females7" << '\t';
+   "PopSize7" << '\t' << "PopMass7" << '\t' << "Females7" << '\t' << "Males7" << '\t';
   for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
     print_resourceName(Timefile, *it_r);
     Timefile << "\t";}
@@ -366,10 +363,6 @@ int main(int argc, char* argv[]) {
   FullTraitfile << "Time" << "\t";
   print_individualnames(FullTraitfile);
   FullTraitfile << "\n" << endl;
-
-  Traitfile << "Time" << "\t";
-  print_traitsindividualnames(Traitfile);
-  Traitfile << endl;
 
   Matefile <<"Time" <<"\t" << "f_age" << "\t" << "f_size" << "\t" << "f_eco" << "\t" << "f_neu" << "\t" <<
     "f_mating" <<"\t" << "f_reprobuf" << '\t' << "f_ID" << '\t' << "f_IDNR" << '\t' <<
@@ -397,34 +390,6 @@ LogFile << "___________________________________________" << endl;
      LogFile << "\n \n \nTime is " << Time * delta_t << endl;
      #endif
 
-     //Write phenotypic traits only to traitfile//
-     if ((Pop_TraitOutput> 0) && ((round(fmod(T_POP, (Pop_TraitOutput / delta_t))) == 0) || ((round(fmod(T_POP,   (Pop_TraitOutput / delta_t)) - (Pop_TraitOutput / delta_t))  == 0)))) {
-     LogFile << "Writing phenotypes to traitfile at time " << Time * delta_t << endl << endl;
-     #ifdef TIMECHECK
-     start = std::chrono::high_resolution_clock::now();
-     #endif
-     T_POP = 0;
-     for (auto&& it_f : Juvvec){
-       Traitfile << Time * delta_t << "\t";
-       print_traitsindividual(Traitfile, *it_f);
-       Traitfile << endl;
-     }
-     for (auto&& it_f : Femalevec){
-       Traitfile << Time * delta_t << "\t";
-       print_traitsindividual(Traitfile, *it_f);
-       Traitfile << endl;
-     }
-     for (auto&& it_f : Malevec){
-       Traitfile << Time * delta_t << "\t";
-       print_traitsindividual(Traitfile, *it_f);
-       Traitfile << endl;
-     }
-     #ifdef TIMECHECK
-     stop = std::chrono::high_resolution_clock::now();
-     duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-     LogFile << "Writing output to the traitfile took " << duration.count() << " microseconds" << endl;
-     #endif
-   }
 
      //Write FULL POPstate output to file//
      if ((Pop_Output > 0) && ((round(fmod(T_POP_FULL, (Pop_Output / delta_t))) == 0)|| (round(fmod(T_POP_FULL, (Pop_Output / delta_t)) - (Pop_Output / delta_t))  == 0))){
@@ -448,7 +413,6 @@ LogFile << "___________________________________________" << endl;
          print_individual(FullTraitfile, *it_f);
          FullTraitfile << endl;
        }
-
        #ifdef TIMECHECK
        stop = std::chrono::high_resolution_clock::now();
        duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -678,11 +642,17 @@ LogFile << "___________________________________________" << endl;
    for (auto&& it_f : Juvvec){
      it_f->R_Intake(AllFood, Feeding);
      if(it_f->Mature){
-       if((it_f->sex==0) & (!clonal)){
-         Malevec.push_back(std::move(it_f));
-     } else {
-        Femalevec.push_back(std::move(it_f)); //move mature individuals to adults
-     }
+       if(!clonal){
+         if(unif(mt_rand) > 0.5) {it_f->sex = 1;} else {it_f->sex = 0;}
+         if(it_f->sex==1){
+           Femalevec.push_back(std::move(it_f));
+         } else {
+           Malevec.push_back(std::move(it_f));
+         }
+       } else {
+         it_f->sex = 1;
+         Femalevec.push_back(std::move(it_f));
+       }
      }
    }
 
@@ -773,7 +743,7 @@ LogFile << "___________________________________________" << endl;
      #endif
      //maybe better to shuffle it depending on reproductive buffer? In this way maybe less mate limitation?
      sort(Femalevec.begin(), Femalevec.end(), cmp_by_repro); //sort
-     sort(Malevec.begin(), Malevec.end(), cmp_by_repro); //sort
+     //sort(Malevec.begin(), Malevec.end(), cmp_by_repro); //sorting of males not necessary
    for (auto&& it_f : Femalevec) {
      if (it_f->Fecund) {
      vector<double> cumsum;
@@ -861,7 +831,7 @@ LogFile << "___________________________________________" << endl;
          it_f->ClonalRepro();
          it_f->Matings += 1;}
      }
-     for (auto&& it_f : Malevec){
+     for (auto&& it_f : Malevec){ //will not be used but just for clarity.
        if (it_f->Fecund) {
          it_f->ClonalRepro();
          it_f->Matings += 1;}
@@ -935,7 +905,6 @@ LogFile << "___________________________________________" << endl;
 
  //close files
    Endfile.close();
-   Traitfile.close();
    FullTraitfile.close();
    Timefile.close();
    LogFile.close();
@@ -983,7 +952,6 @@ LogFile << "___________________________________________" << endl;
        cout << "Simulation ended at time " << Time * delta_t << endl;
 
        Endfile.close();
-       Traitfile.close();
        FullTraitfile.close();
        Timefile.close();
        LogFile.close();

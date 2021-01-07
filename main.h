@@ -104,7 +104,6 @@ ofstream LogFile;
 ofstream Matefile;
 ofstream Timefile;
 ofstream Endfile;
-ofstream Traitfile;
 ofstream FullTraitfile;
 
 //Vectors for time-settings and parameters
@@ -354,7 +353,6 @@ void signalHandler( int signum ){
 
  //close files
      Endfile.close();
-     Traitfile.close();
      FullTraitfile.close();
      Timefile.close();
      LogFile.close();
@@ -427,9 +425,9 @@ for(int k = 0; k < N_ini; ++k){
 
 
   //adults (IDnr, sex, age, size, mature, matings, reprodbuf, maxage, starve_nr)
-  unique_ptr<Individual> IndivPtr3(new Individual(1, 1, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr3(new Individual(k+1, 1, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
-  unique_ptr<Individual> IndivPtr4(new Individual(2, 0, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr4(new Individual(k+2, 0, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
   Juvvec.push_back(move(IndivPtr1));
