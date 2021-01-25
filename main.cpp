@@ -1,6 +1,5 @@
 ///////INCLUDE FILES//////////////
 #include "main.h"
-#include "my_rng.hpp"
 
 auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 //without user input, the time is used as the random seed//
