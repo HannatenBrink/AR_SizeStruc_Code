@@ -1,11 +1,15 @@
 ///////INCLUDE FILES//////////////
 #include "main.h"
+#include "my_rng.hpp"
 
+auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//without user input, the time is used as the random seed//
 
 //#define TIMECHECK //In case I want to get an idea about how long calculations take
 
 /*---------------------START OF MAIN-----------------------------------------*/
 int main(int argc, char* argv[]) {
+
 
 /*------------------------------Check input-----------------------------------------*/
   if(argc < 2 ){
@@ -18,8 +22,13 @@ int main(int argc, char* argv[]) {
   cout << "Start of run: " << Filename << std::endl;
 
 /*--------------------------------Create random number generators-----------------------------------------------------------------------*/
-  auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-  if(argc == 3) {seed = atof(argv[2]);} //Set seed via command line (optional)
+  //auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+  if(argc == 3) {
+    seed = atof(argv[2]);
+  } //Set seed via command line (optional)
+  mt19937 mt_rand(seed);
+
 
 /*---------------------------Create output file to log info----------------------------------------*/
 
@@ -28,7 +37,8 @@ int main(int argc, char* argv[]) {
   LogFile.open(ss.str());
   ss.str("");
   LogFile << "The random seed for this run is: " << seed << endl;
-  mt19937 mt_rand(seed);
+  LogFile << "Get a random number between 0 - 1 to check seed: " << unif(mt_rand) << endl;
+
 
   /*---------------------------Read Cvf file----------------------------------------*/
   LogFile << "Reading the CVF file" << endl;
@@ -166,7 +176,7 @@ int main(int argc, char* argv[]) {
 
   if(!InitPop){
     LogFile<< "The ISF-file " <<ss.str() << " does not exist. Initialization via the program. Start with " << N_ini * 4 <<  " individuals\n";
-    Init_Env();
+    Init_Env(mt_rand);
   } else {
     LogFile << "Initialization occurs via the isf file\n";
     Time = Starttime_init;
@@ -634,13 +644,13 @@ LogFile << "___________________________________________" << endl;
    OverCons = 0;
    //Feed and grow and die//
    for (auto&& it_f : Femalevec){
-     it_f->R_Intake(AllFood, Feeding);
+     it_f->R_Intake(AllFood, Feeding, mt_rand);
    }
    for (auto&& it_f : Malevec){
-     it_f->R_Intake(AllFood, Feeding);
+     it_f->R_Intake(AllFood, Feeding, mt_rand);
    }
    for (auto&& it_f : Juvvec){
-     it_f->R_Intake(AllFood, Feeding);
+     it_f->R_Intake(AllFood, Feeding, mt_rand);
      if(it_f->Mature){
        if(!clonal){
          if(unif(mt_rand) > 0.5) {it_f->sex = 1;} else {it_f->sex = 0;}
@@ -786,7 +796,7 @@ LogFile << "___________________________________________" << endl;
          (*it_m)->SpeciesID << "\t" <<
          (*it_m)->IDNR << "\t" <<
          endl;}
-         it_f->SexualRepro(**it_m); //reproduce
+         it_f->SexualRepro(**it_m, mt_rand); //reproduce
      } else if((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
          Matefile << Time * delta_t << "\t" <<
          it_f->age << "\t" <<
@@ -828,12 +838,12 @@ LogFile << "___________________________________________" << endl;
      #endif
      for (auto&& it_f : Femalevec){
        if (it_f->Fecund) {
-         it_f->ClonalRepro();
+         it_f->ClonalRepro(mt_rand);
          it_f->Matings += 1;}
      }
      for (auto&& it_f : Malevec){ //will not be used but just for clarity.
        if (it_f->Fecund) {
-         it_f->ClonalRepro();
+         it_f->ClonalRepro(mt_rand);
          it_f->Matings += 1;}
      }
 

@@ -85,7 +85,8 @@ double Pop_Mass7 = 0;
 double Females7 = 0;
 double Males7 = 0;
 
-mt19937 mt_rand;
+
+
 uniform_real_distribution<double> unif;
 uniform_int_distribution<> IDNR_Rand(1, 100000);
 normal_distribution<double> MutNorm;
@@ -365,7 +366,7 @@ void signalHandler( int signum ){
 
 /*-----Init the env and pop in absence of isf file----------*/
 
-void Init_Env() {
+void Init_Env(std::mt19937& mt_rand_ref) {
 /*------------------------Initialize the environment-------------------------------*/
     Resource RB(RJmax, volume, ThetaB, TauB, "RB");
     Resource R1(RAmax, volume, Theta1, Tau1, "R1");
@@ -417,17 +418,17 @@ for(i = 0; i < N_eco; ++i){
 
 std::cout << "Add " << N_ini * 4 << " individuals to the init pop" << std::endl;
 for(int k = 0; k < N_ini; ++k){
-  //juveniles//
-  unique_ptr<Individual> IndivPtr1(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
-  ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
-  unique_ptr<Individual> IndivPtr2(new Individual(mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
-  ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
+  //juveniles//
+  unique_ptr<Individual> IndivPtr1(new Individual(mt_rand_ref, (k+1),mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
+  unique_ptr<Individual> IndivPtr2(new Individual(mt_rand_ref, (k+1)+4,mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
   //adults (IDnr, sex, age, size, mature, matings, reprodbuf, maxage, starve_nr)
-  unique_ptr<Individual> IndivPtr3(new Individual(k+1, 1, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr3(new Individual((k+1)+8, 1, 0, 100,  1, 0, 0, 100, 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
-  unique_ptr<Individual> IndivPtr4(new Individual(k+2, 0, 0, 100,  1, 0, 0, Surv_age(mt_rand), 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
+  unique_ptr<Individual> IndivPtr4(new Individual((k+1)+12, 0, 0, 100,  1, 0, 0, 100, 0, mate_traits_f_ini, mate_traits_m_ini, neutral_traits_f_ini, neutral_traits_m_ini,
   ecological_traits_f_ini, ecological_traits_m_ini,  AllFood));
 
   Juvvec.push_back(move(IndivPtr1));

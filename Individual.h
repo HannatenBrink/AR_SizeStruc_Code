@@ -14,7 +14,6 @@ extern int i;
 extern int j;
 extern std::vector<int>::iterator int_it; //iterator over integers
 extern std::vector<double>::iterator int_doub; //iterator over doubles
-extern std::mt19937 mt_rand; //random number gen
 extern std::uniform_real_distribution<double> unif; //uniform dist
 extern std::uniform_int_distribution<> IDNR_Rand;
 extern std::normal_distribution<double> MutNorm; //normal dist
@@ -34,6 +33,7 @@ extern int Offspring; //Number of offspring
 extern double dif; //Difference in trait between two parents
 extern double eps;
 extern int TotStarv;
+
 
 
 class Individual {
@@ -194,13 +194,13 @@ public:
 
 
     //Newborn no mut//
-    Individual(
+    Individual(std::mt19937& mt_rand_ref, double idnr,
       std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
       //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
       std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
       std::vector<double> ecological_traits_f, std::vector<double> ecological_traits_m,
        std::vector<Resource>& AllFood)
-      :  mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
+      : IDNR(idnr), mating_trait_alleles_f(mate_traits_f), mating_trait_alleles_m(mate_traits_m),
       neutral_trait_alleles_f(neutral_traits_f), neutral_trait_alleles_m(neutral_traits_m),
       ecological_trait_alleles_f(ecological_traits_f), ecological_trait_alleles_m(ecological_traits_m)
        {
@@ -213,7 +213,6 @@ public:
         Is_dead = false;
         Mature = false;
         sex = 2;
-        IDNR = IDNR_Rand(mt_rand);
         if (N_neutral) {
           neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
           neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
@@ -234,7 +233,7 @@ public:
         }
 
         //determine maximum age of an individual
-        MaxAge = Surv_age(mt_rand);
+        MaxAge = Surv_age(mt_rand_ref);
 
         //Determine species identity//
         for (i = 0; i < Nr_Res; ++i){
@@ -257,7 +256,7 @@ public:
       }
 
   //Newborn with mut (it will mutate its traits first)//
-  Individual(
+  Individual(std::mt19937& mt_rand_ref, //random number gen
     std::vector<double> mate_traits_f, std::vector<double> mate_traits_m,
     //std::vector<int> mate_traits_f, std::vector<int> mate_traits_m,
     std::vector<double> neutral_traits_f, std::vector<double> neutral_traits_m,
@@ -276,14 +275,13 @@ public:
       Is_dead = false;
       Mature = false;
       sex = 2;
-      IDNR = IDNR_Rand(mt_rand);
+      IDNR = IDNR_Rand(mt_rand_ref);
       //mutate traits//
       if(mut == 1){
-      this->Mate_mut();
-      this->Eco_mut();
-      this->Neutral_mut();
-      }
-
+      this->Mate_mut(mt_rand_ref);
+      this->Eco_mut(mt_rand_ref);
+      this->Neutral_mut(mt_rand_ref);
+    }
       if (N_neutral) {
         neutral_trait = std::accumulate(neutral_trait_alleles_f.begin(), neutral_trait_alleles_f.end(), 0.0f);
         neutral_trait += std::accumulate(neutral_trait_alleles_m.begin(), neutral_trait_alleles_m.end(), 0.0f);}
@@ -304,7 +302,7 @@ public:
       }
 
       //determine maximum age of an individual
-      MaxAge = Surv_age(mt_rand);
+      MaxAge = Surv_age(mt_rand_ref);
 
       //Determine species identity//
       for (i = 0; i < Nr_Res; ++i){
@@ -331,24 +329,24 @@ public:
   ~Individual() {};
 
   /*------------------Member functions declarations---------------------------------------*/
-  void R_Intake(std::vector<Resource>&, std::vector<double>&); //Food intake
+  void R_Intake(std::vector<Resource>&, std::vector<double>&, std::mt19937&); //Food intake
 
 
   /*------------------Mutations---------------------------------------*/
 //  void Mate_mut_diallic();
 
-  void Mate_mut();
+  void Mate_mut(std::mt19937&);
 
-  void Neutral_mut();
+  void Neutral_mut(std::mt19937&);
 
-  void Eco_mut();
+  void Eco_mut(std::mt19937&);
 
   /*------------------Mating probability---------------------------------------*/
   Individual& MateProb(const Individual&, std::vector<double> &, double &);
 
   /*------------------Mating function---------------------------------------*/
-  void SexualRepro(Individual&);
-  void ClonalRepro();
+  void SexualRepro(Individual&, std::mt19937&);
+  void ClonalRepro(std::mt19937&);
 
   /*-------------------Sorting based on age ---------------------------------*/
   bool operator <(Individual const & IndividualObj)const;
