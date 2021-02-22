@@ -21,13 +21,9 @@ int main(int argc, char* argv[]) {
   cout << "Start of run: " << Filename << std::endl;
 
 /*--------------------------------Create random number generators-----------------------------------------------------------------------*/
-  //auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
-  if(argc == 3) {
-    seed = atof(argv[2]);
-  } //Set seed via command line (optional)
+  if(argc == 3) {seed = atof(argv[2]);} //Set seed via command line (optional)
   mt19937 mt_rand(seed);
-
 
 /*---------------------------Create output file to log info----------------------------------------*/
 
@@ -38,8 +34,8 @@ int main(int argc, char* argv[]) {
   LogFile << "The random seed for this run is: " << seed << endl;
   LogFile << "Get a random number between 0 - 1 to check seed: " << unif(mt_rand) << endl;
 
-
   /*---------------------------Read Cvf file----------------------------------------*/
+
   LogFile << "Reading the CVF file" << endl;
   ss<<Filename<<".cvf";
   ifstream input(ss.str());
@@ -102,8 +98,8 @@ int main(int argc, char* argv[]) {
   if (clonal) {
     LogFile << "Reproduction is clonal" << endl;
     if(N_mating>0 || N_neutral > 0) {
-      LogFile << "Error: Mating genotypes should be set to zero in cvf file. Exit run..." << endl;
-      cout << "Error: Mating genotypes should be set to zero in cvf file. Exit run..." << endl;
+      LogFile << "Error: With clonal reproduction, there should be zero mating genotypes in the cvf file. Exit run..." << endl;
+      cout << "Error: With clonal reproduction, there should be zero mating genotypes in the cvf file. Exit run..." << endl;
       exit(1);
     }} else {
     LogFile << "Reproduction is sexual" << endl;
@@ -127,16 +123,12 @@ int main(int argc, char* argv[]) {
   Timefile.open(ss.str());
   ss.str("");
 
-
   //File containing all individuals and their genotypes&phenotypes in the population//
   ss<<Filename<<"_alltraits"<<".txt";
   FullTraitfile.open(ss.str());
   ss.str("");
 
-  //Population at the end of run//
-  ss<<Filename<<".esf";
-  Endfile.open(ss.str());
-  ss.str("");
+
 
 
  /*--------------------------------Define variables-------------------------------------------*/
@@ -740,8 +732,8 @@ LogFile << "___________________________________________" << endl;
      exit(1);
    }
 
- /*------------------------Mating----CHANGE ---------------------------*/
-   if(!clonal){//sexual reproduction
+ /*------------------------Mating-----------------------------*/
+   if(!clonal){ //sexual reproduction
      #ifdef TIMECHECK
      start = std::chrono::high_resolution_clock::now();
      auto start2 = std::chrono::high_resolution_clock::now();
@@ -750,9 +742,9 @@ LogFile << "___________________________________________" << endl;
      auto Tot2 = dur2.count();
      Tot2 = 0;
      #endif
-     //maybe better to shuffle it depending on reproductive buffer? In this way maybe less mate limitation?
+     //Shuffle it depending on reproductive buffer to make sure mate limitation is not too severe//
      sort(Femalevec.begin(), Femalevec.end(), cmp_by_repro); //sort
-     //sort(Malevec.begin(), Malevec.end(), cmp_by_repro); //sorting of males not necessary
+     //sort(Malevec.begin(), Malevec.end(), cmp_by_repro); //sorting of males not necessary because females choose
    for (auto&& it_f : Femalevec) {
      if (it_f->Fecund) {
      vector<double> cumsum;
@@ -769,14 +761,19 @@ LogFile << "___________________________________________" << endl;
      Tot2 += dur2.count();
      #endif
      RandomVal = unif(mt_rand) * Tot;
+     //cout << "Random val is " << RandomVal << endl;
+     //for (auto f = cumsum.begin(); f != cumsum.end(); ++f) {
+    //      std::cout << *f << ' ';}
      mate = weighted_random_known_sums_floats(cumsum, RandomVal, cumsum.size()); //roulette wheel selection with binary search
+     //cout << '\n' << "The mate is " << mate << endl;
      auto it_m = next(Malevec.begin(), mate);
+     //cout << "with trait " << (*it_m)->ecological_trait << endl;
      if (((*it_m)->Fecund) & (Tot > 0)) {
        it_f->Matings += 1;
        (*it_m)->Matings += 1;
 
      //Write mate choice to matefile
-     if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))) {
+     if ((MateFile > 0) && ((round(fmod(T_Mate, (MateFile / delta_t))) == 0)|| (round(fmod(T_Mate, (MateFile / delta_t)) - (MateFile / delta_t))  == 0))){
          Matefile << Time * delta_t << "\t" <<
          it_f->age << "\t"
          << it_f->size << "\t" <<
@@ -877,6 +874,10 @@ LogFile << "___________________________________________" << endl;
 
  /*------------------------Create last output--------------------------------------------*/
 
+ //Population at the end of run//
+ ss<<Filename<<".esf";
+ Endfile.open(ss.str());
+ ss.str("");
 
  Endfile << "Time" << "\t" << "Volume" << "\t";
  for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
@@ -926,6 +927,11 @@ LogFile << "___________________________________________" << endl;
        LogFile << "Writing current output to the .esf file" << endl;
 
        //Resource Names to file///
+       //Population at the end of run//
+       ss<<Filename<<".esf";
+       Endfile.open(ss.str());
+       ss.str("");
+
        Endfile << "Time" << "\t" << "Volume" << "\t";
        for (it_r = AllFood.begin(); it_r != AllFood.end(); ++it_r){
          print_resourceName(Endfile, *it_r);

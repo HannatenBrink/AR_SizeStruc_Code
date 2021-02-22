@@ -92,7 +92,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
       }
       if (female.mating_trait > 0){
         this->matingProb = dif;
-      } else if (female.mating_trait < 1){
+      } else if (female.mating_trait < 0){
         this->matingProb = 1 - dif;
       }
     } else {
@@ -104,7 +104,7 @@ Individual& Individual::MateProb(const Individual& female, std::vector<double> &
   } else {
     this->matingProb = 0;
   }
-
+      //std::cout << "mating probability for a " << this->Fecund<< " male with eco trait " << this->ecological_trait << " and female with eco trait " << female.ecological_trait << " and mating trait " << female.mating_trait << " equals " << this->matingProb << '\n' << std::endl;
       total += this->matingProb;
       vec.push_back(total);
       return *this;
